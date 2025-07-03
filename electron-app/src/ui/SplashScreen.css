@@ -1,0 +1,134 @@
+.splash-screen {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #121212; /* Grey background color */
+  overflow: hidden;
+}
+
+.splash-content {
+  position: relative; /* For absolute positioning of children */
+  display: flex;
+  justify-content: center; /* Center content initially */
+  align-items: center;
+  width: 450px; /* Increased to accommodate larger logo and text */
+  height: 150px; /* Increased height for larger logo */
+}
+
+.GemmaTalk-logo {
+  position: absolute;
+  width: 150px; /* Increased size */
+  height: auto;
+  left: 50%; /* Start in the center of splash-content */
+  transform: translateX(-55%); /* Center horizontally */
+  animation: logo-move 2.0s ease-in-out forwards; /* Added ease-in-out for smoother animation */
+}
+
+.GemmaTalk-text-container {
+  position: absolute;
+  font-size: 3em; /* Increased font size */
+  color: white;
+  left: 54%; /* Start in the center of splash-content */
+  transform: translateX(-50%); /* Center horizontally */
+  opacity: 0;
+  animation: text-reveal 1.75s ease-in-out forwards, type-box-reveal 0.7s steps(7) forwards; /* Combined animations */
+  animation-delay: 0.95s; /* Start revealing text after logo starts moving */
+  
+  overflow: hidden; /* Hide overflowing text */
+  white-space: nowrap; /* Keep text on a single line */
+  border-right: 0.15em solid orange; /* Blinking cursor */
+  padding-right: 0.15em; /* Space for cursor */
+  box-sizing: border-box; /* Include padding in width calculation */
+}
+
+/* Keyframe Animations */
+@keyframes logo-move {
+  0% {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  100% {
+    left: calc(50% - 100px); /* Adjusted to move left by half of new logo width + some margin */
+    transform: translateX(-110%);
+  }
+}
+
+@keyframes text-reveal {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes type-box-reveal {
+  from { width: 0.31em; } /* Blinker width + padding */
+  to { width: 5.6em; } /* Text width + blinker width + padding */
+}
+
+@keyframes hide-typing-cursor {
+  to {
+    border-right-color: transparent;
+  }
+}
+
+@keyframes blink-caret {
+  0%, 100% {
+    border-color: transparent;
+  }
+  50% {
+    border-color: orange;
+  }
+}
+
+.blinking-caret {
+  display: inline-block;
+  border-right: 2px solid orange;
+  animation: blink-caret 0.7s step-end infinite;
+  animation-delay: 1.7s; /* Start blinking after typing effect */
+  height: 1em;
+  margin-left: 4px;
+}
+
+.splash-content {
+  /* ...existing code... */
+  flex-direction: column; /* Stack logo, text, and thought vertically */
+  gap: 18px; /* Space between elements */
+  height: auto; /* Let content define height */
+  min-height: 250px;
+}
+
+.Thought {
+  margin-top: 250px;
+  padding: 0.7em 1.5em;
+  background: rgba(30, 30, 40, 0.7);
+  backdrop-filter: blur(6px);
+  border-radius: 18px;
+  box-shadow: 0 4px 24px 0 rgba(0,0,0,0.18);
+  color: #f3f3f3;
+  font-size: 1.15em;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-align: center;
+  animation: thought-modern-reveal 1.2s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+  animation-delay: 1.5s;
+  opacity: 0;
+  transform: translateY(24px) scale(0.98);
+}
+
+@keyframes thought-modern-reveal {
+  0% {
+    opacity: 0;
+    transform: translateY(24px) scale(0.98);
+  }
+  80% {
+    opacity: 1;
+    transform: translateY(-4px) scale(1.03);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

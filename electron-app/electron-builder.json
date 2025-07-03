@@ -1,0 +1,52 @@
+{
+  "appId": "com.mirang.GemmaTalk",
+  "productName": "I.S.A.C",
+  "asar": true,
+  "publish": null,
+  "files": ["dist-electron", "dist-react"],
+  "extraResources": [
+    "dist-electron/preload.cjs",
+    {
+      "from": "src/assets",
+      "to": "assets"
+    },
+    {
+      "from": "assets/fonts",
+      "to": "fonts"
+    },
+    {
+      "from": "src/Binaries",
+      "to": "Binaries",
+      "filter": ["**/*"]
+    }
+  ],
+  "directories": {
+    "buildResources": "build",
+    "output": "dist"
+  },
+  "icon": "./GemmaTalk.ico",
+  "win": {
+    "target": "nsis",
+    "icon": "GemmaTalk.ico",
+    "signAndEditExecutable": true
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true,
+    "warningsAsErrors": false,
+    "shortcutName": "I.S.A.C",
+    "license": "license.txt",
+    "include": "E:/Github Projects/Gemmatalk/electron-app/installer-script.nsi"
+  },
+  "mac": {
+    "target": "dmg"
+  },
+  "linux": {
+    "target": "AppImage",
+    "category": "Utility"
+  },
+  "extraMetadata": {
+    "version": "1.0.0",
+    "description": "Offline AI desktop assistant using Ollama."
+  }
+}

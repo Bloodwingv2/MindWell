@@ -1,0 +1,27 @@
+ return (
+    <div className = "chat-container">
+      <h1>Intelligent System Analytic Computer</h1>
+      <div className ="ChatWindow">
+        {messages.map((msg, idx) => (
+          <div
+          key = {idx}
+          className = {`message ${msg.role === 'user' ? 'user' : 'assistant'}`}
+          >
+            <div className = "message-content">{msg.content}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className ="InputArea">
+        <input
+        type = "text"
+        value = {input}
+        onChange = {(e) => setInput(e.target.value)}
+        onKeyDown = {handleKeyDown}
+        placeholder = "Type your message here..."
+        />
+        <button onClick = {sendMessage}>Send</button>
+      </div>
+    </div>
+  )
+}
