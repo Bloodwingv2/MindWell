@@ -24,6 +24,17 @@ interface Tracker {
 
 const trackers: Tracker[] = [
   {
+    id: 'chat-assistant',
+    title: 'Chat with MindWell',
+    description: 'Chat with the MindWell AI assistant.',
+    content: `
+      <div class="mental-health-chat-section">
+        <h3>Chat with MindWell Assistant:</h3>
+        <!-- Chat messages and input will be rendered by React components -->
+      </div>
+    `,
+  },
+  {
     id: 'mood-tracker',
     title: 'Mood Tracker',
     description: 'Track your daily mood and identify patterns.',
@@ -42,15 +53,18 @@ const trackers: Tracker[] = [
     `,
   },
   {
-    id: 'journal',
-    title: 'Journal',
-    description: 'Write down your thoughts and feelings.',
+    id: 'gratitude-journal',
+    title: 'Gratitude Journal',
+    description: 'Write down things you are grateful for.',
     content: `
-      <h2>Journal</h2>
-      <p>Journaling is a powerful tool for self-reflection and emotional processing. Use this space to write freely about your day, your thoughts, and your feelings.</p>
-      <!-- Journal UI elements will go here -->
-      <textarea placeholder="Start writing..."></textarea>
-      <button>Save Entry</button>
+      <h2>Gratitude Journal</h2>
+      <p>Take a moment to reflect on the positive things in your life. What are you grateful for today?</p>
+      <textarea id="gratitudeEntry" placeholder="Today I am grateful for..."></textarea>
+      <button id="saveGratitudeBtn">Save Entry</button>
+      <h3>Past Entries:</h3>
+      <ul id="gratitudeList" class="gratitude-list">
+        <!-- Gratitude entries will be dynamically added here -->
+      </ul>
     `,
   },
   {
@@ -96,6 +110,22 @@ const trackers: Tracker[] = [
       </div>
     `,
   },
+  {
+    id: 'goal-setter',
+    title: 'Goal Setter',
+    description: 'Set and track your personal goals.',
+    content: `
+      <h2>Goal Setter</h2>
+      <p>Set small, achievable goals to improve your well-being.</p>
+      <div class="goal-input-section">
+        <input type="text" id="newGoalInput" placeholder="Enter a new goal" />
+        <button id="addGoalBtn">Add Goal</button>
+      </div>
+      <ul id="goalList" class="goal-list">
+        <!-- Goals will be dynamically added here -->
+      </ul>
+    `,
+  },
 ];
 
 const affirmations: string[] = [
@@ -114,7 +144,7 @@ const affirmations: string[] = [
 function App() {
   const [messages, setMessages] = useState<Message[]>([]); // All Chat messages
   const [input, setInput] = useState(''); // Initialize input state as an empty string
-  const [selectedTracker, setSelectedTracker] = useState<Tracker | null>(trackers[0]); // Default to the first tracker
+  const [selectedTracker, setSelectedTracker] = useState<Tracker | null>(null); // Default to null for home screen
   const [visitedTrackers, setVisitedTrackers] = useState<string[]>(() => {
     const storedVisited = localStorage.getItem('visitedTrackers');
     return storedVisited ? JSON.parse(storedVisited) : [];
@@ -127,6 +157,14 @@ function App() {
   const [wellnessEntries, setWellnessEntries] = useState<{ date: string; score: number }[]>(() => {
     const storedWellness = localStorage.getItem('wellnessEntries');
     return storedWellness ? JSON.parse(storedWellness) : [];
+  });
+  const [goals, setGoals] = useState<{ id: string; text: string; completed: boolean }[]>(() => {
+    const storedGoals = localStorage.getItem('goals');
+    return storedGoals ? JSON.parse(storedGoals) : [];
+  });
+  const [gratitudeEntries, setGratitudeEntries] = useState<{ id: string; date: string; text: string }[]>(() => {
+    const storedGratitude = localStorage.getItem('gratitudeEntries');
+    return storedGratitude ? JSON.parse(storedGratitude) : [];
   });
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null); // Ref to scroll to the bottom of chat
@@ -142,6 +180,14 @@ function App() {
   useEffect(() => {
     localStorage.setItem('wellnessEntries', JSON.stringify(wellnessEntries));
   }, [wellnessEntries]);
+
+  useEffect(() => {
+    localStorage.setItem('goals', JSON.stringify(goals));
+  }, [goals]);
+
+  useEffect(() => {
+    localStorage.setItem('gratitudeEntries', JSON.stringify(gratitudeEntries));
+  }, [gratitudeEntries]);
 
   useEffect(() => {
     // Set a random affirmation on component mount and every 20 seconds
@@ -182,6 +228,101 @@ function App() {
       }
     };
   }, [selectedTracker, setWellnessEntries]);
+
+  useEffect(() => {
+    const addGoalBtn = document.getElementById('addGoalBtn');
+    const newGoalInput = document.getElementById('newGoalInput') as HTMLInputElement;
+    const goalListElement = document.getElementById('goalList');
+
+    const renderGoals = () => {
+      if (goalListElement) {
+        goalListElement.innerHTML = goals.map(goal => `
+          <li class="goal-item ${goal.completed ? 'completed' : ''}" data-id="${goal.id}">
+            <span>${goal.text}</span>
+            <input type="checkbox" ${goal.completed ? 'checked' : ''} />
+          </li>
+        `).join('');
+      }
+    };
+
+    const handleAddGoal = () => {
+      const goalText = newGoalInput.value.trim();
+      if (goalText) {
+        const newGoal = { id: Date.now().toString(), text: goalText, completed: false };
+        setGoals(prev => [...prev, newGoal]);
+        newGoalInput.value = '';
+      }
+    };
+
+    const handleToggleGoal = (e: Event) => {
+      const target = e.target as HTMLInputElement;
+      if (target.type === 'checkbox') {
+        const listItem = target.closest('.goal-item') as HTMLLIElement;
+        if (listItem) {
+          const goalId = listItem.dataset.id;
+          setGoals(prev => prev.map(goal =>
+            goal.id === goalId ? { ...goal, completed: !goal.completed } : goal
+          ));
+        }
+      }
+    };
+
+    if (addGoalBtn && newGoalInput) {
+      addGoalBtn.addEventListener('click', handleAddGoal);
+    }
+
+    if (goalListElement) {
+      goalListElement.addEventListener('change', handleToggleGoal);
+    }
+
+    renderGoals(); // Initial render and re-render on goals change
+
+    return () => {
+      if (addGoalBtn) {
+        addGoalBtn.removeEventListener('click', handleAddGoal);
+      }
+      if (goalListElement) {
+        goalListElement.removeEventListener('change', handleToggleGoal);
+      }
+    };
+  }, [selectedTracker, goals, setGoals]);
+
+  useEffect(() => {
+    const saveGratitudeBtn = document.getElementById('saveGratitudeBtn');
+    const gratitudeEntryInput = document.getElementById('gratitudeEntry') as HTMLTextAreaElement;
+    const gratitudeListElement = document.getElementById('gratitudeList');
+
+    const renderGratitudeEntries = () => {
+      if (gratitudeListElement) {
+        gratitudeListElement.innerHTML = gratitudeEntries.map(entry => `
+          <li class="gratitude-item">
+            <strong>${entry.date}:</strong> ${entry.text}
+          </li>
+        `).join('');
+      }
+    };
+
+    const handleSaveGratitude = () => {
+      const entryText = gratitudeEntryInput.value.trim();
+      if (entryText) {
+        const newEntry = { id: Date.now().toString(), date: new Date().toLocaleDateString(), text: entryText };
+        setGratitudeEntries(prev => [...prev, newEntry]);
+        gratitudeEntryInput.value = '';
+      }
+    };
+
+    if (saveGratitudeBtn && gratitudeEntryInput) {
+      saveGratitudeBtn.addEventListener('click', handleSaveGratitude);
+    }
+
+    renderGratitudeEntries();
+
+    return () => {
+      if (saveGratitudeBtn) {
+        saveGratitudeBtn.removeEventListener('click', handleSaveGratitude);
+      }
+    };
+  }, [selectedTracker, gratitudeEntries, setGratitudeEntries]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({behavior : 'smooth'})
@@ -331,7 +472,7 @@ function App() {
           </div>
         </div>
         <div className="lowerside">
-          <button className="queryBottom">
+          <button className="queryBottom" onClick={() => setSelectedTracker(null)}>
             <img src={homeicon} alt="" className = "Homeicon" />Home
             </button>
           <button className="queryBottom">
@@ -345,7 +486,10 @@ function App() {
       <div className="main">
         {selectedTracker ? (
           <div className="tracker-content-area">
-            <div className="tracker-text" dangerouslySetInnerHTML={{ __html: selectedTracker.content }} />
+            {selectedTracker.id !== 'chat-assistant' && (
+              <div className="tracker-text" dangerouslySetInnerHTML={{ __html: selectedTracker.content }} />
+            )}
+            {selectedTracker.id === 'chat-assistant' && (
               <div className="mental-health-chat-section">
                 <h3>Chat with MindWell Assistant:</h3>
                 <div className="chats">
@@ -367,38 +511,29 @@ function App() {
                   <div ref={messagesEndRef} /> {/* Add this for auto-scroll */}
                 </div>
                 <div className="chatfooter">
-                  <motion.div 
-                  className ="inputbox"
-                  initial={{ scale: 0.95, opacity: 0.8 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                >
-                    <input type="text" placeholder='Ask anything about mental health...' value = {input} onChange={(e) =>{setInput(e.target.value)}} onKeyDown={handleKeyDown}/>
-                    <motion.button 
-                      className="send" 
+                  <motion.div
+                    className="inputbox"
+                    initial={{ scale: 0.95, opacity: 0.8 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  >
+                    <input type="text" placeholder='Ask anything about mental health...' value={input} onChange={(e) => { setInput(e.target.value) }} onKeyDown={handleKeyDown} />
+                    <motion.button
+                      className="send"
                       onClick={askGemma}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                    ><img src = {sentbtn} alt = "" className = "sendbtnimg"></img></motion.button>
+                    ><img src={sentbtn} alt="" className="sendbtnimg"></img></motion.button>
                   </motion.div>
-                  <p className ="disclaimer">MindWell Assistant provides general information and support. It is not a substitute for professional medical advice, diagnosis, or treatment.</p>
+                  <p className="disclaimer">MindWell Assistant provides general information and support. It is not a substitute for professional medical advice, diagnosis, or treatment.</p>
                 </div>
               </div>
+            )}
           </div>
         ) : (
           <div className="welcome-screen">
-            <h2>Welcome to MindWell!</h2>
+            <h2>Hello User 👋</h2>
             <p>Select a tracker or tool from the sidebar to get started on your mental wellness journey.</p>
-            <img src={ISAClogo} alt="MindWell Logo" style={{ width: '200px', marginTop: '50px' }} />
-            <motion.div
-              key={currentAffirmation} // Key for re-rendering and animation on change
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-              className="affirmation-display"
-            >
-              <p className="affirmation-text">{currentAffirmation}</p>
-            </motion.div>
           </div>
         )}
       </div>

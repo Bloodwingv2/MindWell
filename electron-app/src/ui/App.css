@@ -527,6 +527,138 @@ body {
   border: 1px dashed #4a235a;
 }
 
+
+.tracker-text textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid #4a235a;
+  background: #2a2a4a;
+  color: #e0e0e0;
+  font-size: 1rem;
+  margin-top: 20px;
+  box-sizing: border-box;
+  resize: vertical;
+}
+
+.tracker-text textarea:focus {
+  outline: none;
+  border-color: #8e44ad;
+  box-shadow: 0 0 0 2px rgba(142, 68, 173, 0.3);
+}
+
+.tracker-text button {
+  background: linear-gradient(45deg, #8e44ad, #a567c7);
+  color: #ffffff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  margin-top: 15px;
+  transition: all 0.3s ease;
+}
+
+.tracker-text button:hover {
+  background: linear-gradient(45deg, #a567c7, #8e44ad);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+.gratitude-list {
+  list-style: none;
+  padding: 0;
+  margin-top: 20px;
+}
+
+.gratitude-item {
+  background: #2a2a4a;
+  padding: 12px 15px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  border: 1px solid #33334d;
+  color: #c0c0c0;
+  line-height: 1.5;
+}
+
+.goal-input-section {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  justify-content: center;
+  align-items: center;
+}
+
+.goal-input-section input[type="text"] {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #4a235a;
+  background: #2a2a4a;
+  color: #e0e0e0;
+  flex-grow: 1;
+}
+
+.goal-input-section input[type="text"]:focus {
+  outline: none;
+  border-color: #8e44ad;
+  box-shadow: 0 0 0 2px rgba(142, 68, 173, 0.3);
+}
+
+.goal-input-section button {
+  background: linear-gradient(45deg, #8e44ad, #a567c7);
+  color: #ffffff;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.goal-input-section button:hover {
+  background: linear-gradient(45deg, #a567c7, #8e44ad);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+.goal-list {
+  list-style: none;
+  padding: 0;
+  margin-top: 20px;
+  width: 100%;
+}
+
+.goal-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 15px;
+  background: #2a2a4a;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  transition: all 0.3s ease;
+  border: 1px solid #33334d;
+}
+
+.goal-item.completed {
+  background: #3e274a;
+  opacity: 0.7;
+  text-decoration: line-through;
+}
+
+.goal-item span {
+  color: #e0e0e0;
+  flex-grow: 1;
+}
+
+.goal-item input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  accent-color: #8e44ad; /* Style checkbox with accent color */
+  cursor: pointer;
+}
+
 .affirmation-text {
   margin: 0;
 }
