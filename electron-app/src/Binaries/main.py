@@ -1,3 +1,4 @@
+
 # Importing necessary libraries for LLM, Ollama and Speech Synthesis
 from langchain_ollama import OllamaLLM
 from langchain_core.prompts import ChatPromptTemplate
@@ -18,7 +19,7 @@ import subprocess
 class QueryRequest(BaseModel): # Request structure for FastAPI
     question: str
     context: str = ""
-    model: str = "llama3.2"  # Default model with fallback
+    model: str = "gemma3n:e2b-it-q4_K_M"  # Default model with fallback
 
 
 class customhandler(StreamingStdOutCallbackHandler):
@@ -55,7 +56,7 @@ app.add_middleware(
 
 # Template for the AI assistant
 template = """
-You are a AI assistant named ISAC, Made by a Male human named as Mirang Bhandari, Answer the question below concisely
+You are a AI assistant named GemmaTalk, Made by a Male human named as Mirang Bhandari, Answer the question below concisely
 
 Here is the conversation history: {context}
 

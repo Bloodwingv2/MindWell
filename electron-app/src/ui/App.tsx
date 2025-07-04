@@ -1,116 +1,187 @@
 import './App.css'
-import GemmaTalklogo from '../assets/GemmaTalk.png'
-import Placeholder from '../assets/new_user.svg'
+import ISAClogo from '../assets/MindWell.png'
 import sentbtn from '../assets/send-svgrepo-com.svg'
 import homeicon from '../assets/homeicon.svg'
 import settingsicon from '../assets/settingsicon.svg'
-import newchaticon from '../assets/newchaticon.svg'
 import voicemode from '../assets/voicemodeicon.svg'
 import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion';
 
-// Model Selector Component
-interface Model {
-  id: string;
-  name: string;
-  description: string;
-  size: string;
-  color: string;
-}
-
-interface ModelSelectorProps {
-  selectedModel: string;
-  onModelChange: (modelId: string) => void;
-}
-
-const ModelSelector: React.FC<ModelSelectorProps> = ({ selectedModel, onModelChange }) => {
-  const [isOpen, setIsOpen] = useState<boolean>(false);
-
-  const models: Model[] = [
-    {
-      id: 'llama3.2',
-      name: 'Llama 3.2',
-      description: 'Fast & efficient',
-      size: 'Llama 3.2 3B',
-      color: '#60A5FA'
-    },
-    {
-      id: 'mistral',
-      name: 'Mistral: Latest',
-      description: 'Compact powerhouse',
-      size: 'Mistral 3.8B',
-      color: '#A78BFA'
-    },
-    {
-      id: 'gemma2:2b',
-      name: 'Gemma 2 2B',
-      description: 'Lightweight model',
-      size: 'Gemma 2 2B',
-      color: '#34D399'
-    }
-  ];
-
-  const currentModel = models.find(model => model.id === selectedModel);
-
-  return (
-    <div className="model-selector-container">
-      {/* Compact Model Selector Button */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="model-selector-button"
-      >
-        <div className="model-selector-color-dot" style={{ backgroundColor: currentModel?.color }} />
-        <span>{currentModel?.size}</span>
-        <span className={`model-selector-arrow ${isOpen ? 'open' : ''}`}>▼</span>
-      </button>
-
-      {/* Dropdown Menu */}
-      {isOpen && (
-        <div className="model-selector-dropdown">
-          {models.map((model, index) => (
-            <button
-              key={model.id}
-              onClick={() => {
-                onModelChange(model.id);
-                setIsOpen(false);
-              }}
-              className={`model-selector-option ${selectedModel === model.id ? 'selected' : ''}`}
-              style={{ borderBottom: index < models.length - 1 ? '1px solid #4A5568' : 'none' }}
-            >
-              <div className="model-selector-option-content">
-                <div className="model-selector-option-color-dot" style={{ backgroundColor: model.color }} />
-                <div className="model-selector-option-text">
-                  <div className="model-selector-option-name">
-                    {model.name}
-                  </div>
-                  <div className="model-selector-option-desc">
-                    {model.description}
-                  </div>
-                </div>
-                {selectedModel === model.id && (
-                  <div className="model-selector-selected-indicator" />
-                )}
-              </div>
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
 
 type Message = {
   id: string; // Add unique ID
   role: 'user' | 'assistant';
   content: string;
-  isTyping?: boolean;
+  displayedContent?: string; // For character-by-character display
 }
+
+interface Tracker {
+  id: string;
+  title: string;
+  description: string;
+  content: string; // This will hold the tracker's UI content
+}
+
+const trackers: Tracker[] = [
+  {
+    id: 'mood-tracker',
+    title: 'Mood Tracker',
+    description: 'Track your daily mood and identify patterns.',
+    content: `
+      <h2>Mood Tracker</h2>
+      <p>Use this tracker to log your mood throughout the day. Understanding your mood patterns can help you identify triggers and develop coping strategies.</p>
+      <!-- Mood tracking UI elements will go here -->
+      <p>How are you feeling today?</p>
+      <div class="mood-options">
+        <button>😊 Happy</button>
+        <button>😐 Neutral</button>
+        <button>😔 Sad</button>
+        <button>😠 Angry</button>
+        <button>😟 Anxious</button>
+      </div>
+    `,
+  },
+  {
+    id: 'journal',
+    title: 'Journal',
+    description: 'Write down your thoughts and feelings.',
+    content: `
+      <h2>Journal</h2>
+      <p>Journaling is a powerful tool for self-reflection and emotional processing. Use this space to write freely about your day, your thoughts, and your feelings.</p>
+      <!-- Journal UI elements will go here -->
+      <textarea placeholder="Start writing..."></textarea>
+      <button>Save Entry</button>
+    `,
+  },
+  {
+    id: 'breathing-exercises',
+    title: 'Breathing Exercises',
+    description: 'Practice calming breathing techniques.',
+    content: `
+      <h2>Breathing Exercises</h2>
+      <p>Deep breathing exercises can help calm your nervous system and reduce stress. Follow the instructions below for a guided breathing session.</p>
+      <!-- Breathing exercise UI elements will go here -->
+      <p>Inhale deeply for 4 counts, hold for 4 counts, exhale slowly for 6 counts.</p>
+      <button>Start Exercise</button>
+    `,
+  },
+  {
+    id: 'guided-meditations',
+    title: 'Guided Meditations',
+    description: 'Listen to guided meditation sessions for relaxation.',
+    content: `
+      <h2>Guided Meditations</h2>
+      <p>Find peace and calm with our guided meditation sessions. Choose a session below to begin.</p>
+      <div class="meditation-list">
+        <button>5-Minute Mindfulness</button>
+        <button>10-Minute Stress Relief</button>
+        <button>Sleep Meditation</button>
+      </div>
+      <!-- Audio player elements would go here -->
+    `,
+  },
+  {
+    id: 'wellness-tracker',
+    title: 'Wellness Tracker',
+    description: 'Track your overall wellness over time.',
+    content: `
+      <h2>Wellness Tracker</h2>
+      <p>Log your daily wellness score (1-10) and see your progress over time.</p>
+      <div class="wellness-input-section">
+        <input type="number" id="wellnessScore" min="1" max="10" placeholder="Enter wellness score (1-10)" />
+        <button id="logWellnessBtn">Log Wellness</button>
+      </div>
+      <div class="wellness-graph-placeholder">
+        <p>Graph of your wellness over time will appear here.</p>
+      </div>
+    `,
+  },
+];
+
+const affirmations: string[] = [
+  "I am worthy of love and happiness.",
+  "I am in control of my emotions and my reactions.",
+  "I am resilient and can overcome any challenge.",
+  "I am grateful for all the good in my life.",
+  "I am capable of achieving my goals.",
+  "I am at peace with who I am.",
+  "I am strong, capable, and enough.",
+  "I choose joy and positivity.",
+  "I am surrounded by love and support.",
+  "I trust in my journey and my growth."
+];
 
 function App() {
   const [messages, setMessages] = useState<Message[]>([]); // All Chat messages
   const [input, setInput] = useState(''); // Initialize input state as an empty string
-  const [selectedModel, setSelectedModel] = useState('llama3.2'); // Selected model state
+  const [selectedTracker, setSelectedTracker] = useState<Tracker | null>(trackers[0]); // Default to the first tracker
+  const [visitedTrackers, setVisitedTrackers] = useState<string[]>(() => {
+    const storedVisited = localStorage.getItem('visitedTrackers');
+    return storedVisited ? JSON.parse(storedVisited) : [];
+  });
+  const [completedTrackers, setCompletedTrackers] = useState<string[]>(() => {
+    const storedCompleted = localStorage.getItem('completedTrackers');
+    return storedCompleted ? JSON.parse(storedCompleted) : [];
+  });
+  const [currentAffirmation, setCurrentAffirmation] = useState('');
+  const [wellnessEntries, setWellnessEntries] = useState<{ date: string; score: number }[]>(() => {
+    const storedWellness = localStorage.getItem('wellnessEntries');
+    return storedWellness ? JSON.parse(storedWellness) : [];
+  });
+
   const messagesEndRef = useRef<HTMLDivElement | null>(null); // Ref to scroll to the bottom of chat
+
+  useEffect(() => {
+    localStorage.setItem('visitedTrackers', JSON.stringify(visitedTrackers));
+  }, [visitedTrackers]);
+
+  useEffect(() => {
+    localStorage.setItem('completedTrackers', JSON.stringify(completedTrackers));
+  }, [completedTrackers]);
+
+  useEffect(() => {
+    localStorage.setItem('wellnessEntries', JSON.stringify(wellnessEntries));
+  }, [wellnessEntries]);
+
+  useEffect(() => {
+    // Set a random affirmation on component mount and every 20 seconds
+    const setRandomAffirmation = () => {
+      const randomIndex = Math.floor(Math.random() * affirmations.length);
+      setCurrentAffirmation(affirmations[randomIndex]);
+    };
+
+    setRandomAffirmation(); // Set initial affirmation
+    const intervalId = setInterval(setRandomAffirmation, 20000); // Change every 20 seconds
+
+    return () => clearInterval(intervalId); // Cleanup on unmount
+  }, []);
+
+  useEffect(() => {
+    const logWellnessBtn = document.getElementById('logWellnessBtn');
+    const wellnessScoreInput = document.getElementById('wellnessScore') as HTMLInputElement;
+
+    const handleLogWellness = () => {
+      const score = parseInt(wellnessScoreInput.value);
+      if (score >= 1 && score <= 10) {
+        const newEntry = { date: new Date().toLocaleDateString(), score };
+        setWellnessEntries(prev => [...prev, newEntry]);
+        wellnessScoreInput.value = ''; // Clear input
+        alert('Wellness logged!');
+      } else {
+        alert('Please enter a score between 1 and 10.');
+      }
+    };
+
+    if (logWellnessBtn && wellnessScoreInput) {
+      logWellnessBtn.addEventListener('click', handleLogWellness);
+    }
+
+    return () => {
+      if (logWellnessBtn) {
+        logWellnessBtn.removeEventListener('click', handleLogWellness);
+      }
+    };
+  }, [selectedTracker, setWellnessEntries]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({behavior : 'smooth'})
@@ -119,7 +190,7 @@ function App() {
   useEffect(scrollToBottom, [messages]); // scroll to bottom whenever messages change
 
   // Called When Send Button is clicked
-  const sendMessage = async () => {
+  const askGemma = async () => { // Renamed sendMessage to askGemma
     if (!input.trim()) return;
 
     const userMessage: Message = { 
@@ -127,16 +198,22 @@ function App() {
       role: 'user' as const, 
       content: input 
     };
-    setMessages(prev => [...prev, userMessage]);
-    setInput('');
 
     const assistantMessage: Message = { 
       id: (Date.now() + 1).toString(), // Generate unique ID for assistant
       role: 'assistant' as const, 
       content: '', 
-      isTyping: true 
+      displayedContent: ''
     };
-    setMessages(prev => [...prev, assistantMessage]);
+
+    let assistantMessageIndex: number = -1;
+
+    setMessages(prev => {
+      const updatedMessages = [...prev, userMessage, assistantMessage];
+      assistantMessageIndex = updatedMessages.length - 1; // Get the index of the newly added assistant message
+      return updatedMessages;
+    });
+    setInput('');
 
     try {
       const response = await fetch('http://localhost:8000/stream', {
@@ -146,8 +223,7 @@ function App() {
         },
         body: JSON.stringify({
           question: input,
-          context: '',
-          model: selectedModel, // Include selected model in the request
+          context: selectedTracker ? selectedTracker.content : '',
         }),
       });
 
@@ -161,47 +237,59 @@ function App() {
       while (true) {
         const { done, value } = await reader.read();
         if (done) {
-          setMessages(prev => {
-            const updated = [...prev];
-            updated[updated.length - 1] = {
-              ...updated[updated.length - 1],
-              isTyping: undefined, // Remove isTyping when done
-            };
-            return updated;
-          });
           break;
         }
 
         const chunk = decoder.decode(value, { stream: true });
         botReply += chunk;
 
-        // Update the last assistant message in real time
-        setMessages(prev => {
-          const updated = [...prev];
-          updated[updated.length - 1] = {
-            ...updated[updated.length - 1],
-            content: botReply,
-          };
-          return updated;
-        });
+        // Update the displayed content character by character
+        for (let i = 0; i < chunk.length; i++) {
+          await new Promise(resolve => setTimeout(resolve, 20)); // Adjust typing speed for smoother animation
+          setMessages(prev => {
+            const updated = [...prev];
+            // Use the captured assistantMessageIndex
+            updated[assistantMessageIndex] = {
+              ...updated[assistantMessageIndex],
+              displayedContent: (updated[assistantMessageIndex].displayedContent || '') + chunk[i],
+            };
+            return updated;
+          });
+        }
+      }
+      // After successful response from Gemma, mark tracker as completed
+      // After the streaming is complete, trim the final displayedContent
+      setMessages(prev => {
+        const updated = [...prev];
+        updated[assistantMessageIndex] = {
+          ...updated[assistantMessageIndex],
+          content: botReply.trimEnd(), // Set the final content, trimmed
+          displayedContent: (updated[assistantMessageIndex].displayedContent || '').trimEnd(), // Trim the displayed content
+        };
+        return updated;
+      });
 
+      // After successful response from Gemma, mark tracker as completed
+      if (selectedTracker && !completedTrackers.includes(selectedTracker.id)) {
+        setCompletedTrackers(prev => [...prev, selectedTracker.id]);
       }
     } catch (error) {
       console.error('Streaming error:', error);
       setMessages(prev => {
         const updated = [...prev];
-        if (updated.length > 0 && updated[updated.length - 1].role === 'assistant') {
-          updated[updated.length - 1] = {
-            ...updated[updated.length - 1],
-            content: updated[updated.length - 1].content + '⚠️ Error connecting to backend.',
-            isTyping: false,
+        const lastMessageIndex = updated.length - 1;
+        if (lastMessageIndex >= 0 && updated[lastMessageIndex].role === 'assistant') {
+          updated[lastMessageIndex] = {
+            ...updated[lastMessageIndex],
+            content: updated[lastMessageIndex].content + '⚠️ Error connecting to backend.',
+            displayedContent: updated[lastMessageIndex].displayedContent + '⚠️ Error connecting to backend.',
           };
         } else {
           updated.push({
-            id: Date.now().toString(), // Add unique ID
+            id: Date.now().toString(),
             role: 'assistant' as const,
             content: '⚠️ Error connecting to backend.',
-            isTyping: false,
+            displayedContent: '⚠️ Error connecting to backend.',
           });
         }
         return updated;
@@ -210,7 +298,7 @@ function App() {
   };
   
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key == 'Enter') sendMessage()
+    if (e.key == 'Enter') askGemma() // Changed sendMessage to askGemma
   }
 
   return (
@@ -218,19 +306,28 @@ function App() {
       <div className="sidebar">
         <div className="upperside">
           <div className="uppersidetop">
-            <img src={GemmaTalklogo} alt="" className="logo" />
-            <span className="brand">GemmaTalk</span>
+            <img src={ISAClogo} alt="" className="logo" />
+            <span className="brand">MindWell</span>
           </div>
-          <button className="midbtn">
-            <img src={newchaticon} alt="" className="addicon" />New chat
-          </button>
-          <div className="upperSideBottom">
-            <button className="queryTop">
-              <img src="" alt="" />what is programming?
-            </button>
-            <button className="queryTop">
-              <img src="" alt="" />what is programming?
-            </button>
+          <div className="trackers-list"> {/* New container for trackers */}
+            <h3>Trackers & Tools</h3>
+            {trackers.map((tracker) => (
+              <motion.button
+                key={tracker.id}
+                className={`tracker-item ${selectedTracker?.id === tracker.id ? 'selected' : ''} ${visitedTrackers.includes(tracker.id) ? 'visited' : ''} ${completedTrackers.includes(tracker.id) ? 'completed' : ''}`}
+                onClick={() => {
+                  setSelectedTracker(tracker);
+                  setMessages([]); // Clear chat when changing trackers
+                  if (!visitedTrackers.includes(tracker.id)) {
+                    setVisitedTrackers(prev => [...prev, tracker.id]);
+                  }
+                }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                {tracker.title}
+              </motion.button>
+            ))}
           </div>
         </div>
         <div className="lowerside">
@@ -246,45 +343,66 @@ function App() {
         </div>
       </div>
       <div className="main">
-        <div className = "chats">
-          {messages.map((message, index) => (
+        {selectedTracker ? (
+          <div className="tracker-content-area">
+            <div className="tracker-text" dangerouslySetInnerHTML={{ __html: selectedTracker.content }} />
+              <div className="mental-health-chat-section">
+                <h3>Chat with MindWell Assistant:</h3>
+                <div className="chats">
+                  {messages.map((message, index) => (
+                    <motion.div
+                      key={index}
+                      className={`message-container ${message.role}`}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <div className="message-content">
+                        <p className="txt">
+                          {message.displayedContent || message.content}
+                        </p>
+                      </div>
+                    </motion.div>
+                  ))}
+                  <div ref={messagesEndRef} /> {/* Add this for auto-scroll */}
+                </div>
+                <div className="chatfooter">
+                  <motion.div 
+                  className ="inputbox"
+                  initial={{ scale: 0.95, opacity: 0.8 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                >
+                    <input type="text" placeholder='Ask anything about mental health...' value = {input} onChange={(e) =>{setInput(e.target.value)}} onKeyDown={handleKeyDown}/>
+                    <motion.button 
+                      className="send" 
+                      onClick={askGemma}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    ><img src = {sentbtn} alt = "" className = "sendbtnimg"></img></motion.button>
+                  </motion.div>
+                  <p className ="disclaimer">MindWell Assistant provides general information and support. It is not a substitute for professional medical advice, diagnosis, or treatment.</p>
+                </div>
+              </div>
+          </div>
+        ) : (
+          <div className="welcome-screen">
+            <h2>Welcome to MindWell!</h2>
+            <p>Select a tracker or tool from the sidebar to get started on your mental wellness journey.</p>
+            <img src={ISAClogo} alt="MindWell Logo" style={{ width: '200px', marginTop: '50px' }} />
             <motion.div
-              key={index}
-              className={`message-container ${message.role}`}
+              key={currentAffirmation} // Key for re-rendering and animation on change
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="affirmation-display"
             >
-              <div className="message-content">
-                <img 
-                  src={message.role === 'user' ? Placeholder : GemmaTalklogo} 
-                  alt={message.role === 'user' ? 'User' : 'GemmaTalk'} 
-                  className={message.role === 'user' ? 'userchatimg' : 'botchatimg'}
-                />
-                <p className="txt">
-                  {message.content}
-                  {message.isTyping && (
-                    <span className="typing-dots"><span>.</span><span>.</span><span>.</span></span>
-                  )}
-                </p>
-              </div>
+              <p className="affirmation-text">{currentAffirmation}</p>
             </motion.div>
-          ))}
-          <div ref={messagesEndRef} /> {/* Add this for auto-scroll */}
-        </div>
-        <div className="chatfooter">
-          <div className ="inputbox">
-            <input type="text" placeholder='Send a Message...' value = {input} onChange={(e) =>{setInput(e.target.value)}} onKeyDown={handleKeyDown}/>
-            <ModelSelector 
-              selectedModel={selectedModel} 
-              onModelChange={setSelectedModel} 
-            />
-            <button className="send" onClick={sendMessage}><img src = {sentbtn} alt = "" className = "sendbtnimg"></img></button>
           </div>
-          <p className ="disclaimer">GemmaTalk. downloads and runs AI models locally via Ollama for on-device inference. Response quality may vary depending on the selected model. Information authenticity is subject to the model selected.</p>
+        )}
       </div>
     </div>
-  </div>
   )
 }
 

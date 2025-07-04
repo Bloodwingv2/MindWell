@@ -1,6 +1,6 @@
 {
-  "appId": "com.mirang.GemmaTalk",
-  "productName": "I.S.A.C",
+  "appId": "com.yourcompany.MindWell",
+  "productName": "MindWell",
   "asar": true,
   "publish": null,
   "files": ["dist-electron", "dist-react"],
@@ -24,17 +24,17 @@
     "buildResources": "build",
     "output": "dist"
   },
-  "icon": "./GemmaTalk.ico",
+  "icon": "./MindWell.ico",
   "win": {
     "target": "nsis",
-    "icon": "GemmaTalk.ico",
+    "icon": "MindWell.ico",
     "signAndEditExecutable": true
   },
   "nsis": {
     "oneClick": false,
     "allowToChangeInstallationDirectory": true,
     "warningsAsErrors": false,
-    "shortcutName": "I.S.A.C",
+    "shortcutName": "MindWell",
     "license": "license.txt",
     "include": "E:/Github Projects/Gemmatalk/electron-app/installer-script.nsi"
   },

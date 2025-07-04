@@ -23,8 +23,12 @@ add_safe_globals([XttsConfig])
 audio_buffer = queue.Queue()
 # Load model
 tts = TTS("tts_models/multilingual/multi-dataset/xtts_v2")
-tts.to("cuda")  # Recommended instead of gpu=True
 
+if torch.cuda.is_available():
+    tts.to("cuda")  # Recommended instead of gpu=True
+else:
+    tts.to("cpu")
+    
 def play_audio(): # Created a seperate function to play generated tts audio 
     while True:
         # Pop audio output from thread

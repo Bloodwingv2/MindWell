@@ -1,0 +1,1 @@
+Debug - FastApi Cmd : curl -X "POST" "http://127.0.0.1:8000/stream" -H "accept: application/json" -H "Content-Type: application/json" -d "{\"question\": \"Are you able to tool call?\", \"context\": \"This is optional context for the question\", \"model\": \"gemma3n:e2b-it-q4_K_M\"}"

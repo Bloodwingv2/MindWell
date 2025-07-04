@@ -32,7 +32,7 @@
   left: 54%; /* Start in the center of splash-content */
   transform: translateX(-50%); /* Center horizontally */
   opacity: 0;
-  animation: text-reveal 1.75s ease-in-out forwards, type-box-reveal 0.7s steps(7) forwards; /* Combined animations */
+  animation: text-reveal 1.75s ease-in-out forwards, type-box-reveal 0.7s steps(5) forwards; /* Combined animations */
   animation-delay: 0.95s; /* Start revealing text after logo starts moving */
   
   overflow: hidden; /* Hide overflowing text */
@@ -50,7 +50,7 @@
   }
   100% {
     left: calc(50% - 100px); /* Adjusted to move left by half of new logo width + some margin */
-    transform: translateX(-110%);
+    transform: translateX(-100%);
   }
 }
 
@@ -65,7 +65,7 @@
 
 @keyframes type-box-reveal {
   from { width: 0.31em; } /* Blinker width + padding */
-  to { width: 5.6em; } /* Text width + blinker width + padding */
+  to { width: 4.5em; } /* Text width + blinker width + padding */
 }
 
 @keyframes hide-typing-cursor {

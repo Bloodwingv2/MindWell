@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import GemmaTalkLogo from '../assets/GemmaTalk.png';
+import GemmaTalkLogo from '../assets/MindWell.png';
 import './SplashScreen.css';
 
 const quotes = [
@@ -11,7 +11,7 @@ const quotes = [
 ];
 
 const SplashScreen: React.FC = () => {
-  const text = "GemmaTalk";
+  const text = "MindWell";
   // Pick a random quote only once per mount
   const quote = useMemo(() => quotes[Math.floor(Math.random() * quotes.length)], []);
   return (

@@ -1,11 +1,11 @@
 {
-  "name": "electron-app",
+  "name": "mindwell",
   "private": true,
   "version": "1.0.0",
   "type": "commonjs",
   "main": "dist-electron/main.js",
   "author": "Mirang Bhandari",
-  "description": "Offline LLM-based desktop assistant Using Ollama Module",
+  "description": "Mental Health Awareness App with Trackers",
   "scripts": {
     "dev": "npm-run-all --parallel dev:react dev:electron",
     "dev:react": "vite",

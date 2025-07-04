@@ -19,7 +19,7 @@ body {
   font-family: 'Space Grotesk', sans-serif;
   font-weight: 400;
   font-size: 16px; /* Base font size for better scaling */
-  background: #1a1a2e; /* Darker, more modern background */
+  background: #1a1a2e; /* Darker, calming background */
   color: #e0e0e0; /* Lighter text for contrast */
 }
 
@@ -68,52 +68,55 @@ body {
   color: #ffffff;
 }
 
-.midbtn {
-  background: #5a4bff; /* Vibrant accent color */
-  border: none;
-  color: white;
-  padding: 15px 20px;
-  font-size: 1.1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  margin-bottom: 20px;
-  border-radius: 8px; /* More rounded corners */
-  cursor: pointer;
-  transition: background 0.3s ease;
-}
-
-.midbtn:hover {
-  background: #6b5bff; /* Slightly lighter on hover */
-}
-
-.addicon {
-  height: 20px;
-  margin-right: 10px;
-}
-
-.upperSideBottom {
+.trackers-list {
   margin-top: 20px;
+  flex-grow: 1; /* Allow trackers list to take available space */
+  overflow-y: auto; /* Enable scrolling for trackers */
+  padding-right: 10px; /* Space for scrollbar */
 }
 
-.queryTop {
+.trackers-list h3 {
+  color: #8e44ad; /* A calming purple */
+  margin-bottom: 15px;
+  font-size: 1.3rem;
+}
+
+.tracker-item {
   width: 100%;
   padding: 12px 15px;
   margin-bottom: 10px;
   background: transparent;
-  border: 1px solid #33334d;
+  border: 1px solid #4a235a; /* Darker purple border */
   color: #c0c0c0;
   cursor: pointer;
   border-radius: 6px;
   text-align: left;
-  transition: background 0.3s ease, border-color 0.3s ease;
+  transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
 }
 
-.queryTop:hover {
-  background: #2a2a4a;
-  border-color: #5a4bff;
+.tracker-item:hover {
+  background: #3e274a; /* Slightly lighter purple on hover */
+  border-color: #8e44ad;
   color: #ffffff;
+  transform: translateX(5px); /* Subtle slide animation */
+}
+
+.tracker-item.selected {
+  background: #8e44ad;
+  border-color: #8e44ad;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.tracker-item.visited {
+  border-left: 4px solid #3498db; /* Blue indicator for visited */
+  opacity: 0.8;
+}
+
+.tracker-item.completed {
+  border-left: 4px solid #27ae60; /* Green indicator for completed */
+  opacity: 1;
+  font-weight: 500;
 }
 
 .lowerside {
@@ -148,7 +151,7 @@ body {
 
 .txt {
   color: #e0e0e0;
-  line-height: 1.6;
+  line-height: 1.2;
 }
 
 .sendbtnimg {
@@ -157,39 +160,107 @@ body {
   filter: invert(100%); /* Make send icon white */
 }
 
+.tracker-content-area {
+  width: 100%;
+  max-width: 900px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 20px;
+}
+
+.tracker-text {
+  background: #20203a;
+  padding: 30px;
+  border-radius: 12px;
+  margin-bottom: 30px;
+  width: 100%;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+.tracker-text h2 {
+  color: #8e44ad;
+  margin-bottom: 20px;
+  font-size: 2rem;
+}
+
+.tracker-text h3 {
+  color: #9b59b6;
+  margin-top: 25px;
+  margin-bottom: 15px;
+  font-size: 1.5rem;
+}
+
+.tracker-text p {
+  margin-bottom: 15px;
+  line-height: 1.8;
+}
+
+.tracker-text ul {
+  list-style-type: disc;
+  margin-left: 20px;
+  margin-bottom: 15px;
+}
+
+.tracker-text li {
+  margin-bottom: 8px;
+}
+
+.mental-health-chat-section {
+  width: 100%;
+  background: #20203a;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.4); /* More pronounced shadow */
+  animation: fadeIn 0.8s ease-out; /* Add a fade-in animation */
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.mental-health-chat-section h3 {
+  color: #8e44ad;
+  margin-bottom: 25px;
+  font-size: 1.4rem;
+  text-align: center;
+}
+
 .chats {
   overflow-y: auto;
   scroll-behavior: smooth;
   width: 100%;
   max-width: 900px;
-  height: calc(100vh - 220px); /* Adjusted height to push footer lower */
-  padding-right: 15px;
-  padding-bottom: 20px;
+  height: 350px; /* Slightly increased height for more chat history */
+  padding-right: 10px; /* Adjusted padding for scrollbar */
+  padding-bottom: 10px;
 }
 
 /* Custom scrollbar styles */
 .chats::-webkit-scrollbar {
-  width: 8px;
+  width: 8px; /* Slightly wider scrollbar */
 }
 
 .chats::-webkit-scrollbar-track {
-  background: #2a2a4a; /* Darker track */
-  border-radius: 4px;
+  background: #1a1a2e; /* Match app background */
+  border-radius: 4px; /* Slightly larger border radius */
 }
 
 .chats::-webkit-scrollbar-thumb {
-  background: #5a4bff; /* Accent color for thumb */
-  border-radius: 4px;
+  background: #8e44ad; /* Accent color for thumb */
+  border-radius: 4px; /* Slightly larger border radius */
+  border: 2px solid #1a1a2e; /* Border to create a gap from track */
 }
 
 .chats::-webkit-scrollbar-thumb:hover {
-  background: #6b5bff;
+  background: #9b59b6;
 }
 
 .message-container {
   display: flex;
   width: 100%;
-  margin-bottom: 15px;
+  margin-bottom: 8px;
 }
 
 .message-container.user {
@@ -203,75 +274,107 @@ body {
 .message-content {
   display: flex;
   align-items: flex-start;
-  padding: 15px 20px;
+  padding: 8px 20px;
   font-size: 1rem;
-  text-align: justify;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-  max-width: 80%; /* Limit message width */
+  text-align: left;
+  border-radius: 20px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.3); /* More pronounced shadow */
+  max-width: 70%; /* Slightly narrower for better readability */
+  position: relative;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  transition: all 0.3s ease, transform 0.1s ease; /* Smooth transition for any changes, add transform */
+  border: 1px solid rgba(255, 255, 255, 0.1); /* Subtle border */
+  box-sizing: border-box; /* Include padding in width/height calculations */
+  min-width: 0; /* Allow content to shrink */
+}
+
+.message-content p {
+  margin: 0;
+  padding: 0;
 }
 
 .message-container.user .message-content {
-  background: #2a2a4a; /* User chat background */
+  background: linear-gradient(135deg, #8e44ad, #a567c7); /* Deeper, more vibrant purple gradient */
+  color: #ffffff;
+  border-bottom-right-radius: 6px; /* Softer pointy corner */
+}
+
+.message-container.user .message-content:hover {
+  transform: translateY(-2px); /* Lift effect on hover */
+  box-shadow: 0 8px 25px rgba(0,0,0,0.4); /* Enhanced shadow on hover */
 }
 
 .message-container.assistant .message-content {
-  background: #33334d; /* Chatbot background */
+  background: #2a2a4a; /* Darker, more subtle background for assistant */
+  color: #e0e0e0;
+  border-bottom-left-radius: 6px; /* Softer pointy corner */
+  height: min-content;
 }
 
-.userchatimg, .botchatimg {
-  object-fit: cover;
-  width: 40px; /* Slightly larger avatars */
-  height: 40px;
-  margin-right: 15px;
-  border-radius: 50%; /* Circular avatars */
-  flex-shrink: 0; /* Prevent shrinking */
+.message-container.assistant .message-content:hover {
+  transform: translateY(-2px); /* Lift effect on hover */
+  box-shadow: 0 8px 25px rgba(0,0,0,0.4); /* Enhanced shadow on hover */
 }
 
 .chatfooter {
   width: 100%;
   max-width: 900px;
-  padding: 30px 0 0px 0; /* Increased top padding */
-  background: #1a1a2e; /* Match app background */
-  margin-top: auto; /* Push to the bottom */
+  padding: 20px 0 10px 0; /* Adjusted padding */
+  background: #20203a; /* Consistent with sidebar and tracker content */
+  margin-top: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   z-index: 10;
+  border-top: 1px solid #33334d; /* Subtle top border */
 }
 
 .inputbox {
-  padding: 10px;
+  padding: 12px;
   background: #2a2a4a;
   display: flex;
   align-items: center;
-  border-radius: 12px;
+  border-radius: 15px;
   width: 100%;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+  border: 1px solid #33334d; /* Subtle border */
+  transition: all 0.3s ease; /* Smooth transition for focus */
+}
+
+.inputbox:focus-within {
+  border-color: #8e44ad; /* Highlight border on focus */
+  box-shadow: 0 0 0 3px rgba(142, 68, 173, 0.3); /* Glow effect */
 }
 
 .inputbox > input {
-  flex: 1; /* Take available space */
+  flex: 1;
   outline: none;
-  padding: 12px 15px;
+  padding: 10px 15px;
   color: #e0e0e0;
   background: transparent;
   border: none;
-  font-size: 1rem;
+  font-size: 1.05rem;
 }
 
 .send {
-  background: #5a4bff;
+  background: linear-gradient(45deg, #8e44ad, #a567c7); /* Gradient for send button */
   border: none;
-  border-radius: 8px;
-  padding: 10px 15px;
+  border-radius: 10px;
+  padding: 12px 22px; /* Slightly more padding */
   cursor: pointer;
   margin-left: 10px;
-  transition: background 0.3s ease;
+  transition: all 0.3s ease;
+  font-weight: 600; /* Make text bolder */
+  text-transform: uppercase; /* Uppercase text */
+  letter-spacing: 0.5px; /* Add some letter spacing */
 }
 
 .send:hover {
-  background: #6b5bff;
+  background: linear-gradient(45deg, #a567c7, #8e44ad); /* Reverse gradient on hover */
+  box-shadow: 0 6px 15px rgba(0,0,0,0.4); /* More prominent shadow on hover */
+  transform: translateY(-1px); /* Subtle lift */
 }
 
 .disclaimer {
@@ -307,119 +410,134 @@ body {
   100% { opacity: 0.2; }
 }
 
-.model-selector-container {
-  position: relative;
-  margin-right: 15px;
-}
-
-.model-selector-button {
-  background: linear-gradient(145deg, #2a2a4a, #33334d); /* Subtle gradient */
-  border: 1px solid #5a4bff; /* Accent color border */
-  border-radius: 10px; /* More rounded */
-  padding: 12px 18px; /* Increased padding */
+.welcome-screen {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 12px;
-  color: #e0e0e0;
-  cursor: pointer;
-  transition: all 0.3s ease, transform 0.2s ease; /* Added transform to transition */
-  font-size: 1rem; /* Slightly larger font */
-  white-space: nowrap;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.3); /* More pronounced shadow */
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  padding: 20px;
 }
 
-.model-selector-button:hover {
-  background: linear-gradient(145deg, #33334d, #3a3a5a); /* Darker gradient on hover */
-  border-color: #6b5bff;
-  box-shadow: 0 6px 15px rgba(0,0,0,0.4); /* Larger shadow on hover */
-  transform: translateY(-2px); /* Subtle lift */
+.welcome-screen h2 {
+  color: #8e44ad;
+  font-size: 2.5rem;
+  margin-bottom: 20px;
 }
 
-.model-selector-color-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  box-shadow: 0 0 5px rgba(255,255,255,0.5); /* Subtle glow */
-}
-
-.model-selector-arrow {
-  transition: transform 0.2s ease;
-  font-size: 0.9rem;
+.welcome-screen p {
+  font-size: 1.2rem;
   color: #c0c0c0;
+  margin-bottom: 30px;
 }
 
-.model-selector-arrow.open {
-  transform: rotate(180deg);
+.tracker-text .meditation-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-top: 20px;
+  justify-content: center;
 }
 
-.model-selector-dropdown {
-  position: absolute;
-  bottom: 100%;
-  left: 0;
-  margin-bottom: 12px; /* Increased margin */
-  min-width: 260px; /* Wider dropdown */
-  background: #2a2a4a;
-  border: 1px solid #33334d;
-  border-radius: 10px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.5); /* More pronounced shadow */
-  z-index: 50;
-  overflow: hidden;
-  backdrop-filter: blur(8px); /* Frosted glass effect */
-  -webkit-backdrop-filter: blur(8px); /* Safari support */
-}
-
-.model-selector-option {
-  width: 100%;
-  padding: 14px 20px; /* Increased padding */
-  text-align: left;
-  background: transparent;
-  border: none;
-  color: #e0e0e0;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.model-selector-option:hover {
-  background: #33334d;
-}
-
-.model-selector-option.selected {
-  background: #33334d;
+.tracker-text .meditation-list button {
+  background: #4a235a;
   color: #ffffff;
-  font-weight: 500;
+  border: 1px solid #8e44ad;
+  padding: 12px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background 0.3s ease, transform 0.2s ease;
 }
 
-.model-selector-option-content {
+.tracker-text .meditation-list button:hover {
+  background: #5e336a;
+  transform: translateY(-2px);
+}
+
+.affirmation-display {
+  margin-top: 40px;
+  padding: 20px 30px;
+  background: linear-gradient(45deg, #8e44ad, #9b59b6); /* Gradient background */
+  border-radius: 15px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+  max-width: 600px;
+  color: #ffffff;
+  font-size: 1.5rem;
+  font-weight: 500;
+  text-align: center;
+  line-height: 1.6;
+  border: 2px solid #ffffff; /* White border */
+  animation: pulse 2s infinite alternate; /* Subtle pulse animation */
+}
+
+.wellness-input-section {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  justify-content: center;
+  align-items: center;
+}
+
+.wellness-input-section input[type="number"] {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #4a235a;
+  background: #2a2a4a;
+  color: #e0e0e0;
+  width: 150px;
+  text-align: center;
+}
+
+.wellness-input-section input[type="number"]:focus {
+  outline: none;
+  border-color: #8e44ad;
+  box-shadow: 0 0 0 2px rgba(142, 68, 173, 0.3);
+}
+
+.wellness-input-section button {
+  background: linear-gradient(45deg, #8e44ad, #a567c7);
+  color: #ffffff;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.wellness-input-section button:hover {
+  background: linear-gradient(45deg, #a567c7, #8e44ad);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+.wellness-graph-placeholder {
+  margin-top: 30px;
+  padding: 20px;
+  background: #2a2a4a;
+  border-radius: 10px;
+  text-align: center;
+  color: #c0c0c0;
+  min-height: 200px;
   display: flex;
   align-items: center;
-  gap: 15px; /* Increased gap */
+  justify-content: center;
+  border: 1px dashed #4a235a;
 }
 
-.model-selector-option-color-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  box-shadow: 0 0 6px rgba(255,255,255,0.6); /* Subtle glow */
+.affirmation-text {
+  margin: 0;
 }
 
-.model-selector-option-text {
-  flex: 1;
-}
-
-.model-selector-option-name {
-  font-size: 1.1rem; /* Slightly larger font */
-  font-weight: 500;
-}
-
-.model-selector-option-desc {
-  font-size: 0.9rem; /* Slightly larger font */
-  color: #c0c0c0;
-}
-
-.model-selector-selected-indicator {
-  width: 10px;
-  height: 10px;
-  background: #5a4bff;
-  border-radius: 50%;
-  box-shadow: 0 0 8px #5a4bff; /* Accent glow */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+  }
+  100% {
+    transform: scale(1.02);
+    box-shadow: 0 12px 25px rgba(0,0,0,0.6);
+  }
 }
