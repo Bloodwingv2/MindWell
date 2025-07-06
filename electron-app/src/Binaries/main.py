@@ -9,6 +9,7 @@ from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from fastapi import FastAPI, Request # FastApi Libraries for Inference
 from pydantic import BaseModel # Importing necessary libraries for FastApi
 from fastapi.responses import StreamingResponse # importing StreamingResponse from FastAPi
+from fastapi.responses import JSONResponse # Importing JSONResponse for returning JSON data
 import asyncio
 from fastapi.middleware.cors import CORSMiddleware
 import logging
@@ -16,10 +17,25 @@ import logging
 # Import subprocess for model download
 import subprocess
 
+# Mood imports to log for graphs
+import json
+from datetime import datetime
+
+async def log_mood(mood: int):
+    entry = {"mood": mood, "timestamp": datetime.now().isoformat()}
+    
+    # Append JSON object per line (JSONL-style)
+    with open("mood_log.json", "a") as f:
+        json.dump(entry, f)
+        f.write("\n")  # newline separates entries
+
 class QueryRequest(BaseModel): # Request structure for FastAPI
     question: str
     context: str = ""
     model: str = "gemma3n:e2b-it-q4_K_M"  # Default model with fallback
+    
+class MoodRequest(BaseModel):
+    graph: int
 
 
 class customhandler(StreamingStdOutCallbackHandler):
@@ -32,16 +48,56 @@ class customhandler(StreamingStdOutCallbackHandler):
         print(token, end= "", flush=True)
         self.buffer += token
         await self.queue.put(token) # Adding Token to the queue for FastApi Processing
-        if self.buffer.endswith(('.', '!', '?')) and len(self.buffer.strip().split()) >= 4: # Added Minor space to fix sentence processing error
+        #if self.buffer.endswith(('.', '!', '?')) and len(self.buffer.strip().split()) >= 4: # Added Minor space to fix sentence processing error
             #synthesis(self.buffer)
-            self.buffer = ""
+            #self.buffer = ""
+            
+    async def graph_creator():
+        pass
+        
 
-    async def token_stream(self):
+    async def token_stream(self):  # ✅ MUST have self!
+        buffer = ""
+        stream_buffer = ""
+        tag_found = False
+        mood_value = None
+
         while True:
             token = await self.queue.get()
+
             if token == "[END]":
                 break
-            yield token.encode('utf-8')
+
+            buffer += token
+            stream_buffer += token
+
+            if buffer.strip().endswith("0Macintosh"):
+                mood_value = 0
+                tag_found = True
+                buffer = buffer.replace("0Macintosh", "")
+                stream_buffer = buffer
+                break
+            elif buffer.strip().endswith("1Macintosh"):
+                mood_value = 1
+                tag_found = True
+                buffer = buffer.replace("1Macintosh", "")
+                stream_buffer = buffer
+                break
+            elif buffer.strip().endswith("2Macintosh"):
+                mood_value = 2
+                tag_found = True
+                buffer = buffer.replace("2Macintosh", "")
+                stream_buffer = buffer
+                break
+
+            yield token.encode("utf-8")
+
+        # Flush remaining text (after tag removal)
+        for char in stream_buffer:
+            yield char.encode("utf-8")
+
+        if tag_found:
+            await log_mood(mood_value)
 
 # Main Code
 app = FastAPI() # Initializing FastAPI app
@@ -56,7 +112,8 @@ app.add_middleware(
 
 # Template for the AI assistant
 template = """
-You are a AI assistant named GemmaTalk, Made by a Male human named as Mirang Bhandari, Answer the question below concisely
+You are a AI assistant named GemmaTalk, Made by a Male human named as Mirang Bhandari, Your Job is to Appreciate the user and always remind him of the positives of the situation no matter how bad the situation is. You are a very positive and helpful AI assistant. You are also very friendly and always try to help the user in any way possible. You are also very knowledgeable and can answer any question the user has.
+Additionally, Based on the message the user provided write a "0Macintosh" or "1Macintosh" or "2Macintosh" to the end of the message to indicate whether the user is happy, sad or neutral.
 
 Here is the conversation history: {context}
 
@@ -133,6 +190,21 @@ async def get_available_models():
             "gemma2:2b"
         ]
     }
+    
+@app.post("/mood")
+async def post_mood(data: MoodRequest):
+    await log_mood(data.graph)
+    return {"mood": data.graph}
+
+@app.get("/mood")
+async def get_mood():
+    try:
+        with open("mood_log.json", "r") as f:
+            lines = f.readlines()
+            mood_entries = [json.loads(line) for line in lines]
+        return JSONResponse(content=mood_entries)
+    except FileNotFoundError:
+        return JSONResponse(content=[])
 
 # Added Main Block for running FastApi Server in Production when turned to .exe
 if __name__ == "__main__":

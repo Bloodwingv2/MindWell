@@ -187,7 +187,7 @@ body {
 .chatfooter {
   width: 100%;
   max-width: 1200px;
-  padding: 20px 0 0px 0; /* Adjusted padding */
+  padding: 10px 0 0px 0; /* Adjusted padding */
   background: #20203a;
   margin-top: auto;
   display: flex;
@@ -202,9 +202,10 @@ body {
   scroll-behavior: smooth;
   width: 100%;
   max-width: 1200px;
-  height: 350px;
+  flex-grow: 1;
+  min-height: 200px; /* Adjust as needed */
   padding-right: 10px;
-  padding-bottom: 10px;
+  padding-bottom: 2px;
 }
 
 /* Custom scrollbar styles */
@@ -229,7 +230,7 @@ body {
 
 .message-container {
   display: flex;
-  margin-bottom: 10px; /* Increased margin for better spacing */
+  margin-bottom: 1px; /* Increased margin for better spacing */
 }
 
 .message-container.user {

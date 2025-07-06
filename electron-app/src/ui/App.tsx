@@ -1,4 +1,5 @@
 import './App.css'
+import WellnessTracker from './WellnessTracker'; // Import WellnessTracker
 
 import ISAClogo from '../assets/MindWell.png'
 import sentbtn from '../assets/send-svgrepo-com.svg'
@@ -95,22 +96,14 @@ const trackers: Tracker[] = [
       <!-- Audio player elements would go here -->
     `,
   },
-  {
+  
+   {
     id: 'wellness-tracker',
     title: 'Wellness Tracker',
     description: 'Track your overall wellness over time.',
-    content: `
-      <h2>Wellness Tracker</h2>
-      <p>Log your daily wellness score (1-10) and see your progress over time.</p>
-      <div class="wellness-input-section">
-        <input type="number" id="wellnessScore" min="1" max="10" placeholder="Enter wellness score (1-10)" />
-        <button id="logWellnessBtn">Log Wellness</button>
-      </div>
-      <div class="wellness-graph-placeholder">
-        <p>Graph of your wellness over time will appear here.</p>
-      </div>
-    `,
+    content: ``,
   },
+  
   {
     id: 'goal-setter',
     title: 'Goal Setter',
@@ -143,6 +136,7 @@ const affirmations: string[] = [
 ];
 
 function App() {
+  const [graph, setGraph] = useState<'mac' | 'hat' | 'pack' | null>(null); // State to hold the graph value
   const [messages, setMessages] = useState<Message[]>([]); // All Chat messages
   const [input, setInput] = useState(''); // Initialize input state as an empty string
   const [selectedTracker, setSelectedTracker] = useState<Tracker | null>(null); // Default to null for home screen
@@ -203,32 +197,7 @@ function App() {
     return () => clearInterval(intervalId); // Cleanup on unmount
   }, []);
 
-  useEffect(() => {
-    const logWellnessBtn = document.getElementById('logWellnessBtn');
-    const wellnessScoreInput = document.getElementById('wellnessScore') as HTMLInputElement;
-
-    const handleLogWellness = () => {
-      const score = parseInt(wellnessScoreInput.value);
-      if (score >= 1 && score <= 10) {
-        const newEntry = { date: new Date().toLocaleDateString(), score };
-        setWellnessEntries(prev => [...prev, newEntry]);
-        wellnessScoreInput.value = ''; // Clear input
-        alert('Wellness logged!');
-      } else {
-        alert('Please enter a score between 1 and 10.');
-      }
-    };
-
-    if (logWellnessBtn && wellnessScoreInput) {
-      logWellnessBtn.addEventListener('click', handleLogWellness);
-    }
-
-    return () => {
-      if (logWellnessBtn) {
-        logWellnessBtn.removeEventListener('click', handleLogWellness);
-      }
-    };
-  }, [selectedTracker, setWellnessEntries]);
+  
 
   
 
@@ -327,6 +296,21 @@ function App() {
         }
 
         const chunk = decoder.decode(value, { stream: true });
+        const updateGraph = () => {
+          if (chunk.includes('[0]')) {
+            setGraph('mac');
+            console.log('Graph set to mac');
+          } else if (chunk.includes('[1]')) {
+            setGraph('hat');
+            console.log('Graph set to hat');
+          } else if (chunk.includes('[2]')) {
+            setGraph('pack');
+            console.log('Graph set to pack');
+          } else {
+            setGraph(null); // fallback
+            console.log('Graph set to null');
+          }
+        };
         botReply += chunk;
 
         // Update the displayed content character by character
@@ -403,7 +387,7 @@ function App() {
                 className={`tracker-item ${selectedTracker?.id === tracker.id ? 'selected' : ''} ${visitedTrackers.includes(tracker.id) ? 'visited' : ''} ${completedTrackers.includes(tracker.id) ? 'completed' : ''}`}
                 onClick={() => {
                   setSelectedTracker(tracker);
-                  setMessages([]); // Clear chat when changing trackers
+                  
                   if (!visitedTrackers.includes(tracker.id)) {
                     setVisitedTrackers(prev => [...prev, tracker.id]);
                   }
@@ -433,6 +417,9 @@ function App() {
           <div className="tracker-content-area">
             {selectedTracker.id !== 'chat-assistant' && (
               <div className="tracker-text" dangerouslySetInnerHTML={{ __html: selectedTracker.content }} />
+            )}
+            {selectedTracker.id === 'wellness-tracker' && (
+              <WellnessTracker wellnessEntries={wellnessEntries} setWellnessEntries={setWellnessEntries} />
             )}
             {selectedTracker.id === 'chat-assistant' && (
               <div className="mental-health-chat-section">
