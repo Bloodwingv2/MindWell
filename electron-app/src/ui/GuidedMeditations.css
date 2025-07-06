@@ -1,0 +1,22 @@
+.meditation-list-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 15px;
+  justify-content: center;
+}
+
+.meditation-list-button {
+  background: #4a235a;
+  color: #ffffff;
+  border: 1px solid #8e44ad;
+  padding: 10px 15px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: background 0.2s ease;
+}
+
+.meditation-list-button:hover {
+  background: #5e336a;
+}

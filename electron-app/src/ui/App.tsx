@@ -1,4 +1,5 @@
 import './App.css'
+
 import ISAClogo from '../assets/MindWell.png'
 import sentbtn from '../assets/send-svgrepo-com.svg'
 import homeicon from '../assets/homeicon.svg'
@@ -229,63 +230,7 @@ function App() {
     };
   }, [selectedTracker, setWellnessEntries]);
 
-  useEffect(() => {
-    const addGoalBtn = document.getElementById('addGoalBtn');
-    const newGoalInput = document.getElementById('newGoalInput') as HTMLInputElement;
-    const goalListElement = document.getElementById('goalList');
-
-    const renderGoals = () => {
-      if (goalListElement) {
-        goalListElement.innerHTML = goals.map(goal => `
-          <li class="goal-item ${goal.completed ? 'completed' : ''}" data-id="${goal.id}">
-            <span>${goal.text}</span>
-            <input type="checkbox" ${goal.completed ? 'checked' : ''} />
-          </li>
-        `).join('');
-      }
-    };
-
-    const handleAddGoal = () => {
-      const goalText = newGoalInput.value.trim();
-      if (goalText) {
-        const newGoal = { id: Date.now().toString(), text: goalText, completed: false };
-        setGoals(prev => [...prev, newGoal]);
-        newGoalInput.value = '';
-      }
-    };
-
-    const handleToggleGoal = (e: Event) => {
-      const target = e.target as HTMLInputElement;
-      if (target.type === 'checkbox') {
-        const listItem = target.closest('.goal-item') as HTMLLIElement;
-        if (listItem) {
-          const goalId = listItem.dataset.id;
-          setGoals(prev => prev.map(goal =>
-            goal.id === goalId ? { ...goal, completed: !goal.completed } : goal
-          ));
-        }
-      }
-    };
-
-    if (addGoalBtn && newGoalInput) {
-      addGoalBtn.addEventListener('click', handleAddGoal);
-    }
-
-    if (goalListElement) {
-      goalListElement.addEventListener('change', handleToggleGoal);
-    }
-
-    renderGoals(); // Initial render and re-render on goals change
-
-    return () => {
-      if (addGoalBtn) {
-        addGoalBtn.removeEventListener('click', handleAddGoal);
-      }
-      if (goalListElement) {
-        goalListElement.removeEventListener('change', handleToggleGoal);
-      }
-    };
-  }, [selectedTracker, goals, setGoals]);
+  
 
   useEffect(() => {
     const saveGratitudeBtn = document.getElementById('saveGratitudeBtn');

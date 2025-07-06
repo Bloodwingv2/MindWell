@@ -1,0 +1,52 @@
+.gratitude-textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #4a235a;
+  background: #2a2a4a;
+  color: #e0e0e0;
+  font-size: 0.95rem;
+  margin-top: 15px;
+  box-sizing: border-box;
+  resize: vertical;
+}
+
+.gratitude-textarea:focus {
+  outline: none;
+  border-color: #8e44ad;
+  box-shadow: 0 0 0 1px rgba(142, 68, 173, 0.2);
+}
+
+.gratitude-save-button {
+  background: #8e44ad;
+  color: #ffffff;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  margin-top: 10px;
+  transition: all 0.2s ease;
+}
+
+.gratitude-save-button:hover {
+  background: #9b59b6;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.gratitude-list-styles {
+  list-style: none;
+  padding: 0;
+  margin-top: 15px;
+}
+
+.gratitude-item-styles {
+  background: #2a2a4a;
+  padding: 10px 12px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  border: 1px solid #33334d;
+  color: #c0c0c0;
+  line-height: 1.4;
+}

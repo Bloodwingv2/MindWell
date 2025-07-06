@@ -1,0 +1,16 @@
+.breathing-exercise-button {
+  background: #8e44ad;
+  color: #ffffff;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  margin-top: 10px;
+  transition: all 0.2s ease;
+}
+
+.breathing-exercise-button:hover {
+  background: #9b59b6;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
