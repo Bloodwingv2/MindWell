@@ -9,7 +9,10 @@ import {
   CategoryScale,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  Filler,
+  type ChartOptions,
+  type TooltipItem,
 } from 'chart.js';
 
 ChartJS.register(
@@ -19,20 +22,30 @@ ChartJS.register(
   CategoryScale,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  Filler
 );
-
-interface WellnessTrackerProps {
-  wellnessEntries: { date: string; score: number }[];
-  setWellnessEntries: React.Dispatch<React.SetStateAction<{ date: string; score: number }[]>>;
-}
 
 interface MoodEntry {
   mood: number;
   timestamp: string;
 }
 
-const WellnessTracker: React.FC<WellnessTrackerProps> = ({ wellnessEntries, setWellnessEntries }) => {
+// Helper to map mood values for the chart
+const mapMoodToChartValue = (mood: number) => {
+  switch (mood) {
+    case 0: // Happy
+      return 2;
+    case 1: // Sad
+      return 0;
+    case 2: // Neutral
+      return 1;
+    default:
+      return 1;
+  }
+};
+
+const WellnessTracker: React.FC = () => {
   const [moodData, setMoodData] = useState<MoodEntry[]>([]);
 
   useEffect(() => {
@@ -40,7 +53,7 @@ const WellnessTracker: React.FC<WellnessTrackerProps> = ({ wellnessEntries, setW
       try {
         const res = await fetch("http://localhost:8000/mood");
         const data = await res.json();
-        setMoodData(data); // assuming backend returns a list like [{ mood: 1, timestamp: "..." }]
+        setMoodData(data);
       } catch (error) {
         console.error("Failed to fetch mood data:", error);
       }
@@ -48,60 +61,90 @@ const WellnessTracker: React.FC<WellnessTrackerProps> = ({ wellnessEntries, setW
     fetchMoodData();
   }, []);
 
-  const handleLogWellness = () => {
-    const wellnessScoreInput = document.getElementById('wellnessScore') as HTMLInputElement;
-    const score = parseInt(wellnessScoreInput.value);
-    if (score >= 1 && score <= 10) {
-      const newEntry = { date: new Date().toLocaleDateString(), score };
-      setWellnessEntries(prev => [...prev, newEntry]);
-      wellnessScoreInput.value = '';
-      alert('Wellness logged!');
-    } else {
-      alert('Please enter a score between 1 and 10.');
-    }
-  };
-
   const chartData = {
     labels: moodData.map(entry =>
-      new Date(entry.timestamp).toLocaleDateString()
+      new Date(entry.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
     ),
     datasets: [
       {
         label: 'Mood',
-        data: moodData.map(entry => entry.mood),
-        borderColor: 'rgb(142, 68, 173)',
-        backgroundColor: 'rgba(142, 68, 173, 0.5)',
-        tension: 0.3,
-        pointRadius: 5
+        data: moodData.map(entry => mapMoodToChartValue(entry.mood)),
+        borderColor: '#8e44ad',
+        backgroundColor: 'rgba(142, 68, 173, 0.2)',
+        fill: true,
+        tension: 0.4,
+        pointRadius: 6,
+        pointBackgroundColor: '#fff',
+        pointBorderColor: '#8e44ad',
+        pointHoverRadius: 8,
+        pointHoverBackgroundColor: '#8e44ad',
+        pointHoverBorderColor: '#fff',
       },
     ],
   };
 
-  const options = {
+  const options: ChartOptions<'line'> = {
     responsive: true,
+    maintainAspectRatio: false,
+    layout: {
+      padding: {
+        top: 20,
+        bottom: 20,
+        left: 10,
+        right: 20,
+      }
+    },
     plugins: {
       legend: {
-        position: 'top' as const,
+        display: false,
       },
       title: {
-        display: true,
-        text: 'Mood Trends Over Time',
-        color: '#e0e0e0',
+        display: false,
       },
+      tooltip: {
+        enabled: true,
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        titleFont: {
+            family: "'Inter', sans-serif",
+            size: 14,
+            weight: 'bold',
+        },
+        bodyFont: {
+            family: "'Inter', sans-serif",
+            size: 12,
+        },
+        padding: 12,
+        cornerRadius: 8,
+        displayColors: false,
+        callbacks: {
+            label: function(context: TooltipItem<'line'>) {
+                const value = context.parsed.y;
+                let moodLabel = '';
+                if (value === 2) moodLabel = '😊 Happy';
+                if (value === 1) moodLabel = '😐 Neutral';
+                if (value === 0) moodLabel = '😔 Sad';
+                return `Mood: ${moodLabel}`;
+            }
+        }
+      }
     },
     scales: {
       y: {
-        min: 0,
-        max: 2,
+        min: -0.5,
+        max: 2.5,
         ticks: {
           callback: function(value: string | number) {
             const numValue = Number(value);
-            if (numValue === 0) return 'Happy';
-            if (numValue === 1) return 'Sad';
-            if (numValue === 2) return 'Neutral';
+            if (numValue === 2) return 'Happy';
+            if (numValue === 1) return 'Neutral';
+            if (numValue === 0) return 'Sad';
             return '';
           },
-          color: '#e0e0e0',
+          color: '#b0b0d0',
+          font: {
+            family: "'Inter', sans-serif",
+            size: 12,
+          },
         },
         grid: {
           color: 'rgba(255, 255, 255, 0.1)',
@@ -109,25 +152,31 @@ const WellnessTracker: React.FC<WellnessTrackerProps> = ({ wellnessEntries, setW
       },
       x: {
         ticks: {
-          color: '#e0e0e0',
+          color: '#b0b0d0',
+          font: {
+            family: "'Inter', sans-serif",
+            size: 12,
+          },
         },
         grid: {
-          color: 'rgba(255, 255, 255, 0.1)',
+          display: false,
         },
       },
     },
   };
 
   return (
-    <div className="wellness-tracker-content">
-      <h2>Wellness Tracker</h2>
-      <p>Log your daily wellness score (1-10) and see your progress over time.</p>
-      <div className="wellness-input-container">
-        <input type="number" id="wellnessScore" className="wellness-input-field" min="1" max="10" placeholder="Enter wellness score (1-10)" />
-        <button id="logWellnessBtn" className="wellness-input-button" onClick={handleLogWellness}>Log Wellness</button>
+    <div className="wellness-tracker-container">
+      <div className="wellness-tracker-header">
+        <h2>Wellness Tracker</h2>
+        <p>Visualize your mood trends and reflect on your emotional journey.</p>
       </div>
-      <div className="wellness-graph-placeholder-styles">
-        <Line options={options} data={chartData} />
+      <div className="wellness-graph-container">
+        {moodData.length > 0 ? (
+          <Line options={options} data={chartData} />
+        ) : (
+          <p>Loading mood data...</p>
+        )}
       </div>
     </div>
   );

@@ -20,6 +20,7 @@ Documentation
 installer
 electron-app/src/assets/OllamaSetup.exe
 Voice_samples
+talkenv
 *.local
 
 # Editor directories and files

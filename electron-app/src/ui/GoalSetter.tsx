@@ -37,11 +37,11 @@ const GoalSetter: React.FC<GoalSetterProps> = ({ goals, setGoals }) => {
         <input type="text" id="newGoalInput" className="goal-input-field" placeholder="Enter a new goal" />
         <button id="addGoalBtn" className="goal-add-button" onClick={handleAddGoal}>Add Goal</button>
       </div>
-      <ul id="goalList" className="goal-list-styles" onChange={handleToggleGoal}>
+      <ul id="goalList" className="goal-list-styles">
         {goals.map(goal => (
           <li key={goal.id} className={`goal-item-styles ${goal.completed ? 'goal-item-completed' : ''}`} data-id={goal.id}>
             <span className="goal-item-span">{goal.text}</span>
-            <input type="checkbox" className="goal-item-checkbox" checked={goal.completed} readOnly />
+            <input type="checkbox" className="goal-item-checkbox" checked={goal.completed} onChange={handleToggleGoal} />
           </li>
         ))}
       </ul>

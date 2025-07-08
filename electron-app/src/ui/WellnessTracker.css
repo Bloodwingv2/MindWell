@@ -1,48 +1,50 @@
-.wellness-input-container {
-  display: flex;
-  gap: 8px;
-  margin-top: 15px;
-  justify-content: center;
-  align-items: center;
-}
-
-.wellness-input-field {
-  padding: 8px;
-  border-radius: 6px;
-  border: 1px solid #4a235a;
-  background: #2a2a4a;
+.wellness-tracker-container {
+  padding: 40px;
+  background: linear-gradient(135deg, #1e1e3f, #1a1a2e);
   color: #e0e0e0;
-  width: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  box-sizing: border-box;
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.wellness-tracker-header {
   text-align: center;
+  margin-bottom: 40px;
 }
 
-.wellness-input-field:focus {
-  outline: none;
-  border-color: #8e44ad;
-  box-shadow: 0 0 0 1px rgba(142, 68, 173, 0.2);
-}
-
-.wellness-input-button {
-  background: #8e44ad;
+.wellness-tracker-header h2 {
+  font-size: 2.8rem;
+  font-weight: 700;
   color: #ffffff;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.95rem;
-  transition: all 0.2s ease;
+  margin-bottom: 15px;
+  letter-spacing: -1px;
 }
 
-.wellness-input-button:hover {
-  background: #9b59b6;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+.wellness-tracker-header p {
+  font-size: 1.2rem;
+  color: #b0b0d0;
+  max-width: 600px;
 }
 
-.wellness-graph-placeholder-styles {
-  width: 100%;
-  height: 400px; /* 👈 MUST have height */
+.wellness-graph-container {
+  width: 90%;
+  max-width: 1000px;
+  height: 500px;
+  background-color: rgba(44, 44, 84, 0.5);
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
   position: relative;
-  background-color: #333; /* Added for visibility check */
-  border: 1px solid red; /* Added for visibility check */
 }
 
+.wellness-graph-container p {
+    color: #b0b0d0;
+    font-size: 1.2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}

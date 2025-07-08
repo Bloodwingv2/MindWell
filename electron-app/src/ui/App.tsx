@@ -136,7 +136,6 @@ const affirmations: string[] = [
 ];
 
 function App() {
-  const [graph, setGraph] = useState<'mac' | 'hat' | 'pack' | null>(null); // State to hold the graph value
   const [messages, setMessages] = useState<Message[]>([]); // All Chat messages
   const [input, setInput] = useState(''); // Initialize input state as an empty string
   const [selectedTracker, setSelectedTracker] = useState<Tracker | null>(null); // Default to null for home screen
@@ -149,14 +148,6 @@ function App() {
     return storedCompleted ? JSON.parse(storedCompleted) : [];
   });
   const [currentAffirmation, setCurrentAffirmation] = useState('');
-  const [wellnessEntries, setWellnessEntries] = useState<{ date: string; score: number }[]>(() => {
-    const storedWellness = localStorage.getItem('wellnessEntries');
-    return storedWellness ? JSON.parse(storedWellness) : [];
-  });
-  const [goals, setGoals] = useState<{ id: string; text: string; completed: boolean }[]>(() => {
-    const storedGoals = localStorage.getItem('goals');
-    return storedGoals ? JSON.parse(storedGoals) : [];
-  });
   const [gratitudeEntries, setGratitudeEntries] = useState<{ id: string; date: string; text: string }[]>(() => {
     const storedGratitude = localStorage.getItem('gratitudeEntries');
     return storedGratitude ? JSON.parse(storedGratitude) : [];
@@ -172,13 +163,7 @@ function App() {
     localStorage.setItem('completedTrackers', JSON.stringify(completedTrackers));
   }, [completedTrackers]);
 
-  useEffect(() => {
-    localStorage.setItem('wellnessEntries', JSON.stringify(wellnessEntries));
-  }, [wellnessEntries]);
-
-  useEffect(() => {
-    localStorage.setItem('goals', JSON.stringify(goals));
-  }, [goals]);
+  
 
   useEffect(() => {
     localStorage.setItem('gratitudeEntries', JSON.stringify(gratitudeEntries));
@@ -296,21 +281,7 @@ function App() {
         }
 
         const chunk = decoder.decode(value, { stream: true });
-        const updateGraph = () => {
-          if (chunk.includes('[0]')) {
-            setGraph('mac');
-            console.log('Graph set to mac');
-          } else if (chunk.includes('[1]')) {
-            setGraph('hat');
-            console.log('Graph set to hat');
-          } else if (chunk.includes('[2]')) {
-            setGraph('pack');
-            console.log('Graph set to pack');
-          } else {
-            setGraph(null); // fallback
-            console.log('Graph set to null');
-          }
-        };
+        
         botReply += chunk;
 
         // Update the displayed content character by character
@@ -419,7 +390,7 @@ function App() {
               <div className="tracker-text" dangerouslySetInnerHTML={{ __html: selectedTracker.content }} />
             )}
             {selectedTracker.id === 'wellness-tracker' && (
-              <WellnessTracker wellnessEntries={wellnessEntries} setWellnessEntries={setWellnessEntries} />
+              <WellnessTracker />
             )}
             {selectedTracker.id === 'chat-assistant' && (
               <div className="mental-health-chat-section">
@@ -466,6 +437,7 @@ function App() {
           <div className="welcome-screen">
             <h2>Hello User 👋</h2>
             <p>Select a tracker or tool from the sidebar to get started on your mental wellness journey.</p>
+            {currentAffirmation && <p className="affirmation">{currentAffirmation}</p>}
           </div>
         )}
       </div>

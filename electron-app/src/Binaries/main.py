@@ -24,15 +24,20 @@ from datetime import datetime
 async def log_mood(mood: int):
     entry = {"mood": mood, "timestamp": datetime.now().isoformat()}
     
-    # Append JSON object per line (JSONL-style)
-    with open("mood_log.json", "a") as f:
-        json.dump(entry, f)
-        f.write("\n")  # newline separates entries
+    try:
+        with open("mood_log.json", "r+") as f:
+            data = json.load(f)
+            data.append(entry)
+            f.seek(0)
+            json.dump(data, f, indent=4)
+    except (FileNotFoundError, json.JSONDecodeError):
+        with open("mood_log.json", "w") as f:
+            json.dump([entry], f, indent=4)
 
 class QueryRequest(BaseModel): # Request structure for FastAPI
     question: str
     context: str = ""
-    model: str = "gemma3n:e2b-it-q4_K_M"  # Default model with fallback
+    model: str = "gemma3n:e2b"  # Default model with fallback
     
 class MoodRequest(BaseModel):
     graph: int
@@ -112,14 +117,20 @@ app.add_middleware(
 
 # Template for the AI assistant
 template = """
-You are a AI assistant named GemmaTalk, Made by a Male human named as Mirang Bhandari, Your Job is to Appreciate the user and always remind him of the positives of the situation no matter how bad the situation is. You are a very positive and helpful AI assistant. You are also very friendly and always try to help the user in any way possible. You are also very knowledgeable and can answer any question the user has.
-Additionally, Based on the message the user provided write a "0Macintosh" or "1Macintosh" or "2Macintosh" to the end of the message to indicate whether the user is happy, sad or neutral.
+You are GemmaTalk, a positive, friendly, and knowledgeable AI assistant created by Mirang Bhandari (a male human). Your purpose is to support and uplift the user at all times, especially during tough situations. Always highlight the positive side and reassure the user, no matter how bad things seem. Be helpful, kind, and encouraging in every response.
 
-Here is the conversation history: {context}
+At the end of your answer always, add a tag based on the user’s emotional tone:
 
-Question: {question}
+"0Macintosh" for happy
 
-Answer:
+"1Macintosh" for sad
+
+"2Macintosh" for neutral
+
+Conversation history: {context}
+User message: {question}
+
+Your reply:
 """
 
 # Create prompt template once (reusable)
@@ -200,10 +211,9 @@ async def post_mood(data: MoodRequest):
 async def get_mood():
     try:
         with open("mood_log.json", "r") as f:
-            lines = f.readlines()
-            mood_entries = [json.loads(line) for line in lines]
+            mood_entries = json.load(f)
         return JSONResponse(content=mood_entries)
-    except FileNotFoundError:
+    except (FileNotFoundError, json.JSONDecodeError):
         return JSONResponse(content=[])
 
 # Added Main Block for running FastApi Server in Production when turned to .exe
