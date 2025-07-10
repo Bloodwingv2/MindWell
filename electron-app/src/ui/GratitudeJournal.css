@@ -1,141 +1,153 @@
 .gratitude-journal-container {
   display: flex;
-  width: 800px;
-  height: 600px;
-  margin: 50px auto;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-  border-radius: 10px;
-  position: relative;
-  background: linear-gradient(to right, #f0f0f0 50%, #e0e0e0 50%);
+  flex-direction: column;
+  flex: 1; /* Take up all available space */
+  margin: 0; /* Remove external margins */
+  background: #1a1a2e; /* Match app background */
+  border-radius: 0; /* No border radius for full height/width */
+  box-shadow: none; /* No shadow for full screen */
+  overflow: hidden;
+  font-family: 'Space Grotesk', sans-serif; /* Use app font */
+  color: #e0e0e0; /* Use app text color */
 }
 
-.journal-cover {
-  width: 50%;
-  background: linear-gradient(135deg, #4a235a, #8e44ad);
-  border-top-left-radius: 10px;
-  border-bottom-left-radius: 10px;
+.journal-pages-wrapper {
+  flex: 1; /* Take up remaining space */
   display: flex;
-  justify-content: center;
-  align-items: center;
+  flex-direction: column;
+  background: #20203a; /* Match sidebar background for a cohesive look */
+  border-radius: 15px; /* Subtle rounded corners for the content area */
+  margin: 20px; /* Some margin from the edges */
+  overflow: hidden;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2); /* Soft shadow for depth */
+}
+
+.journal-header {
+  background: linear-gradient(45deg, #8e44ad 0%, #6a11cb 100%); /* App accent colors */
+  padding: 30px 40px;
   color: #ffffff;
-  font-size: 2.5rem;
-  font-weight: bold;
   text-align: center;
-  padding: 20px;
-  box-shadow: inset -5px 0 10px rgba(0, 0, 0, 0.3);
-}
-
-.journal-binding {
-  width: 30px;
-  background-color: #333;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1); /* Subtle separator */
   position: relative;
-  border-top: 10px solid #555;
-  border-bottom: 10px solid #555;
-  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
 }
 
-.journal-binding::before,
-.journal-binding::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 10px;
-  height: 20px;
-  background-color: #555;
-  border-radius: 5px;
+.journal-header h1 {
+  font-size: 2.8rem;
+  margin-bottom: 8px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-.journal-binding::before {
-  top: 20%;
+.journal-header p {
+  font-size: 1.1rem;
+  opacity: 0.9;
 }
 
-.journal-binding::after {
-  bottom: 20%;
-}
-
-.journal-pages {
-  width: 50%;
-  background-color: #fdfdfd;
-  border-top-right-radius: 10px;
-  border-bottom-right-radius: 10px;
-  padding: 20px;
-  box-sizing: border-box;
+.journal-content {
+  flex: 1;
+  padding: 30px 40px;
   overflow-y: auto;
   position: relative;
 }
 
+/* Custom scrollbar for journal content */
+.journal-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.journal-content::-webkit-scrollbar-track {
+  background: #1a1a2e;
+  border-radius: 4px;
+}
+
+.journal-content::-webkit-scrollbar-thumb {
+  background: #8e44ad;
+  border-radius: 4px;
+  border: 2px solid #1a1a2e;
+}
+
+.journal-content::-webkit-scrollbar-thumb:hover {
+  background: #9b59b6;
+}
+
 .journal-page {
-  padding-bottom: 20px;
-  border-bottom: 1px dashed #ccc;
-  margin-bottom: 20px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  padding: 30px 40px;
+  box-sizing: border-box;
+  background: #20203a; /* Match wrapper background */
+  color: #e0e0e0;
 }
 
-.journal-page:last-child {
-  border-bottom: none;
-  margin-bottom: 0;
+.new-entry-section, .past-entries-section {
+  background: none; /* Handled by .journal-page */
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+  border: none;
 }
 
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 15px;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 5px;
-}
-
-.page-header h2 {
-  font-size: 1.8rem;
-  color: #333;
-  margin: 0;
-}
-
-.page-header p {
-  font-size: 0.9rem;
-  color: #777;
-  margin: 0;
+.new-entry-section h2, .past-entries-section h2 {
+  font-size: 2rem;
+  color: #8e44ad; /* App accent color */
+  margin-bottom: 25px;
+  border-bottom: 2px solid #33334d; /* App border color */
+  padding-bottom: 10px;
+  text-align: center;
 }
 
 .gratitude-textarea {
-  width: calc(100% - 24px);
-  min-height: 120px;
-  padding: 12px;
-  border-radius: 5px;
-  border: 1px solid #ddd;
-  background: #fff;
-  color: #333;
-  font-size: 1rem;
-  margin-top: 15px;
+  width: 100%;
+  min-height: 200px; /* Increased height for more writing space */
+  padding: 20px;
+  border-radius: 10px;
+  border: 1px solid #4a235a; /* App border color */
+  background: #1a1a2e; /* App background */
+  color: #e0e0e0; /* App text color */
+  font-size: 1.1rem;
   box-sizing: border-box;
   resize: vertical;
-  font-family: 'Georgia', serif;
+  font-family: 'Space Grotesk', sans-serif;
   line-height: 1.6;
-  box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
 }
 
 .gratitude-textarea:focus {
   outline: none;
-  border-color: #8e44ad;
-  box-shadow: 0 0 0 2px rgba(142, 68, 173, 0.2);
+  border-color: #8e44ad; /* App accent color */
+  box-shadow: 0 0 0 4px rgba(142, 68, 173, 0.3);
+  background: #2a2a4a; /* Slightly lighter background on focus */
 }
 
 .gratitude-save-button {
-  background: #8e44ad;
+  background: linear-gradient(45deg, #8e44ad 0%, #6a11cb 100%); /* App accent colors */
   color: #ffffff;
   border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
+  padding: 15px 30px;
+  border-radius: 10px;
   cursor: pointer;
-  font-size: 1rem;
-  margin-top: 15px;
+  font-size: 1.1rem;
+  margin-top: 25px;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  display: block; /* Make button take full width */
+  width: fit-content; /* Adjust width to content */
+  margin-left: auto; /* Center the button */
+  margin-right: auto; /* Center the button */
 }
 
 .gratitude-save-button:hover {
-  background: #9b59b6;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  background: linear-gradient(45deg, #6a11cb 0%, #8e44ad 100%);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+  transform: translateY(-2px);
 }
 
 .gratitude-list-styles {
@@ -145,45 +157,208 @@
 }
 
 .gratitude-item-styles {
-  background: #ffffff;
-  padding: 15px;
-  border-radius: 8px;
+  background: #2a2a4a; /* Slightly lighter than wrapper background */
+  padding: 20px;
+  border-radius: 12px;
   margin-bottom: 15px;
-  border: 1px solid #eee;
-  color: #555;
-  line-height: 1.6;
-  font-family: 'Georgia', serif;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  border: 1px solid #33334d; /* App border color */
+  color: #c0c0c0;
+  line-height: 1.7;
+  font-family: 'Space Grotesk', sans-serif;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start; /* Align items to the top */
+}
+
+.gratitude-item-styles:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+}
+
+.entry-text-container {
+  flex-grow: 1;
+  margin-right: 20px; /* Increased space */
 }
 
 .entry-date {
-  font-weight: bold;
-  color: #8e44ad;
-  margin-right: 8px;
+  font-weight: 700;
+  color: #8e44ad; /* App accent color */
+  margin-right: 10px;
+  font-size: 0.95rem;
+  display: block; /* Make date a block element for new line */
+  margin-bottom: 5px; /* Space below date */
 }
 
 .no-entries {
-  color: #777;
+  color: #c0c0c0;
   font-style: italic;
   text-align: center;
+  padding: 40px;
+  font-size: 1.2rem;
+  background: #2a2a4a;
+  border-radius: 10px;
+  border: 1px dashed #4a235a;
+}
+
+.delete-entry-button {
+  background: #e74c3c;
+  color: #ffffff;
+  border: none;
+  border-radius: 50%;
+  width: 35px; /* Slightly larger button */
+  height: 35px;
+  font-size: 1.3rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: background 0.3s ease, transform 0.3s ease;
+  flex-shrink: 0;
+}
+
+.delete-entry-button:hover {
+  background: #c0392b;
+  transform: scale(1.1);
+}
+
+.journal-navigation {
+  display: flex;
+  justify-content: center; /* Center navigation buttons */
   padding: 20px;
+  border-top: 1px solid #33334d; /* App border color */
+  background: #20203a; /* Match wrapper background */
+  gap: 20px; /* Space between buttons */
 }
 
-/* Custom Scrollbar for Journal Pages */
-.journal-pages::-webkit-scrollbar {
-  width: 10px;
+.nav-button {
+  background: linear-gradient(45deg, #8e44ad 0%, #6a11cb 100%);
+  color: #ffffff;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
 }
 
-.journal-pages::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 10px;
+.nav-button:hover:not(:disabled) {
+  background: linear-gradient(45deg, #6a11cb 0%, #8e44ad 100%);
+  box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+  transform: translateY(-2px);
 }
 
-.journal-pages::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 10px;
+.nav-button:disabled {
+  background: #4a235a; /* Darker disabled color */
+  cursor: not-allowed;
+  opacity: 0.6;
+  box-shadow: none;
+  transform: none;
 }
 
-.journal-pages::-webkit-scrollbar-thumb:hover {
-  background: #555;
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .journal-pages-wrapper {
+    margin: 10px;
+  }
+
+  .journal-header {
+    padding: 20px 25px;
+  }
+
+  .journal-header h1 {
+    font-size: 2.2rem;
+  }
+
+  .journal-header p {
+    font-size: 1rem;
+  }
+
+  .journal-content {
+    padding: 20px 25px;
+  }
+
+  .new-entry-section h2, .past-entries-section h2 {
+    font-size: 1.8rem;
+  }
+
+  .gratitude-textarea {
+    min-height: 150px;
+    font-size: 1rem;
+  }
+
+  .gratitude-save-button {
+    padding: 12px 25px;
+    font-size: 1rem;
+  }
+
+  .gratitude-item-styles {
+    padding: 15px;
+  }
+
+  .delete-entry-button {
+    width: 30px;
+    height: 30px;
+    font-size: 1.1rem;
+  }
+
+  .nav-button {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .journal-pages-wrapper {
+    margin: 5px;
+  }
+
+  .journal-header {
+    padding: 15px 20px;
+  }
+
+  .journal-header h1 {
+    font-size: 1.8rem;
+  }
+
+  .journal-header p {
+    font-size: 0.9rem;
+  }
+
+  .journal-content {
+    padding: 15px 20px;
+  }
+
+  .new-entry-section h2, .past-entries-section h2 {
+    font-size: 1.5rem;
+  }
+
+  .gratitude-textarea {
+    min-height: 120px;
+    font-size: 0.9rem;
+  }
+
+  .gratitude-save-button {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+  }
+
+  .gratitude-item-styles {
+    padding: 12px;
+    font-size: 0.9rem;
+  }
+
+  .delete-entry-button {
+    width: 25px;
+    height: 25px;
+    font-size: 1rem;
+  }
+
+  .nav-button {
+    padding: 8px 15px;
+    font-size: 0.8rem;
+  }
 }

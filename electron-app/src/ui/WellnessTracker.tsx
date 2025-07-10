@@ -13,9 +13,9 @@ import {
   Filler,
   type ChartOptions,
   type TooltipItem,
-  ChartData,
-  ScriptableContext,
-  ScriptableSegmentContext,
+  type ChartData,
+  type ScriptableContext,
+  
 } from 'chart.js';
 
 
@@ -92,9 +92,6 @@ const WellnessTracker: React.FC = () => {
         },
         fill: true,
         tension: 0.4,
-        segment: {
-          tension: (ctx: ScriptableSegmentContext) => (ctx.p0.raw === 0 || ctx.p1.raw === 0 ? 0 : 0.4),
-        },
         pointRadius: 6,
         pointBackgroundColor: '#fff',
         pointBorderColor: '#a78bfa',
@@ -158,7 +155,6 @@ const WellnessTracker: React.FC = () => {
       y: {
         min: -0.1,
         max: 2.2,
-        padding: { top: 0, bottom: 20 },
         ticks: {
           callback: function(value: string | number) {
             const numValue = Number(value);

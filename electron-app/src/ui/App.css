@@ -173,11 +173,11 @@ body {
 
 .mental-health-chat-section {
   width: 95%;
-  background: #20203a;
+  background: #20203a; /* Keep existing background */
   padding: 30px;
-  border-radius: 15px;
-  box-shadow: 0 6px 15px rgba(0,0,0,0.3); /* Simplified shadow */
-  animation: fadeIn 0.5s ease-out; /* Faster fade-in */
+  border-radius: 20px; /* More rounded corners */
+  box-shadow: 0 8px 20px rgba(0,0,0,0.4); /* Deeper, softer shadow */
+  animation: fadeIn 0.6s ease-out; /* Slightly slower fade-in */
   display: flex;
   flex-direction: column;
   flex-grow: 1;
@@ -187,14 +187,14 @@ body {
 .chatfooter {
   width: 100%;
   max-width: 1200px;
-  padding: 10px 0 0px 0; /* Adjusted padding */
-  background: #20203a;
+  padding: 15px 0 10px 0; /* Increased padding */
+  background: #20203a; /* Keep existing background */
   margin-top: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   z-index: 10;
-  border-top: 1px solid #33334d;
+  border-top: 1px solid #33334d; /* Keep existing border */
 }
 
 .chats {
@@ -203,34 +203,34 @@ body {
   width: 100%;
   max-width: 1200px;
   flex-grow: 1;
-  min-height: 200px; /* Adjust as needed */
-  padding-right: 10px;
-  padding-bottom: 2px;
+  min-height: 200px;
+  padding-right: 15px; /* Increased padding */
+  padding-bottom: 10px; /* Increased padding */
 }
 
 /* Custom scrollbar styles */
 .chats::-webkit-scrollbar {
-  width: 8px;
+  width: 10px; /* Wider scrollbar */
 }
 
 .chats::-webkit-scrollbar-track {
-  background: #1a1a2e;
-  border-radius: 4px;
+  background: #1a1a2e; /* Keep existing background */
+  border-radius: 5px; /* More rounded */
 }
 
 .chats::-webkit-scrollbar-thumb {
-  background: #8e44ad;
-  border-radius: 4px;
-  border: 2px solid #1a1a2e;
+  background: #8e44ad; /* Keep existing accent color */
+  border-radius: 5px; /* More rounded */
+  border: 3px solid #1a1a2e; /* Thicker border */
 }
 
 .chats::-webkit-scrollbar-thumb:hover {
-  background: #9b59b6;
+  background: #9b59b6; /* Keep existing hover color */
 }
 
 .message-container {
   display: flex;
-  margin-bottom: 1px; /* Increased margin for better spacing */
+  margin-bottom: 15px; /* Increased margin for better spacing */
 }
 
 .message-container.user {
@@ -244,18 +244,18 @@ body {
 .message-content {
   display: flex;
   align-items: flex-start;
-  padding: 10px 15px; /* Adjusted padding */
-  font-size: 1rem;
+  padding: 14px 20px; /* Increased padding */
+  font-size: 1.05rem; /* Slightly larger font size */
   text-align: left;
-  border-radius: 15px; /* Slightly smaller border-radius */
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2); /* Simplified shadow */
-  max-width: 75%; /* Slightly wider for better readability */
+  border-radius: 25px; /* Much more rounded corners */
+  box-shadow: 0 6px 15px rgba(0,0,0,0.25); /* Softer, more pronounced shadow */
+  max-width: 70%; /* Slightly narrower for better readability */
   position: relative;
   overflow-wrap: break-word;
   word-wrap: break-word;
   white-space: pre-wrap;
-  transition: all 0.2s ease; /* Faster transition */
-  border: 1px solid rgba(255, 255, 255, 0.05); /* Lighter border */
+  transition: all 0.3s ease; /* Slower transition */
+  border: 1px solid rgba(255, 255, 255, 0.1); /* Slightly more visible border */
   box-sizing: border-box;
   min-width: 0;
 }
@@ -266,91 +266,89 @@ body {
 }
 
 .message-container.user .message-content {
-  background: #8e44ad; /* Solid color instead of gradient for simplicity */
-  color: #ffffff;
-  border-bottom-right-radius: 4px; /* Smaller pointy corner */
+  background: #8e44ad; /* Keep existing accent color */
+  color: #ffffff; /* Keep existing text color */
+  border-bottom-right-radius: 8px; /* Slightly larger pointy corner */
 }
 
 .message-container.user .message-content:hover {
-  transform: none; /* Removed transform on hover */
-  box-shadow: 0 6px 12px rgba(0,0,0,0.3); /* Simplified shadow on hover */
+  box-shadow: 0 8px 18px rgba(0,0,0,0.35); /* More pronounced shadow on hover */
 }
 
 .message-container.assistant .message-content {
-  background: #2a2a4a;
-  color: #e0e0e0;
-  border-bottom-left-radius: 4px; /* Smaller pointy corner */
+  background: #2a2a4a; /* Keep existing background */
+  color: #e0e0e0; /* Keep existing text color */
+  border-bottom-left-radius: 8px; /* Slightly larger pointy corner */
 }
 
 .message-container.assistant .message-content:hover {
-  transform: none; /* Removed transform on hover */
-  box-shadow: 0 6px 12px rgba(0,0,0,0.3); /* Simplified shadow on hover */
+  box-shadow: 0 8px 18px rgba(0,0,0,0.35); /* More pronounced shadow on hover */
 }
 
 .inputbox {
-  padding: 10px; /* Adjusted padding */
-  background: #2a2a4a;
+  padding: 15px; /* Increased padding */
+  background: #2a2a4a; /* Keep existing background */
   display: flex;
   align-items: center;
-  border-radius: 12px; /* Slightly smaller border-radius */
+  border-radius: 30px; /* Much more rounded corners */
   width: 100%;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2); /* Simplified shadow */
-  border: 1px solid #33334d;
-  transition: all 0.2s ease; /* Faster transition */
+  box-shadow: 0 6px 15px rgba(0,0,0,0.25); /* Softer, more pronounced shadow */
+  border: 1px solid #33334d; /* Keep existing border */
+  transition: all 0.3s ease; /* Slower transition */
 }
 
 .inputbox:focus-within {
-  border-color: #8e44ad;
-  box-shadow: 0 0 0 2px rgba(142, 68, 173, 0.2); /* Lighter glow effect */
+  border-color: #8e44ad; /* Keep existing accent color */
+  box-shadow: 0 0 0 3px rgba(142, 68, 173, 0.3); /* More visible glow effect */
 }
 
 .inputbox > input {
   flex: 1;
   outline: none;
-  padding: 8px 12px; /* Adjusted padding */
-  color: #e0e0e0;
+  padding: 10px 15px; /* Increased padding */
+  color: #e0e0e0; /* Keep existing text color */
   background: transparent;
   border: none;
-  font-size: 1rem;
+  font-size: 1.1rem; /* Slightly larger font size */
 }
 
 .send {
-  background: #8e44ad; /* Solid color */
+  background: #8e44ad; /* Keep existing accent color */
   border: none;
-  border-radius: 8px; /* Slightly smaller border-radius */
-  padding: 10px 18px; /* Adjusted padding */
+  border-radius: 25px; /* Much more rounded corners */
+  padding: 12px 22px; /* Increased padding */
   cursor: pointer;
-  margin-left: 10px;
-  transition: all 0.2s ease; /* Faster transition */
+  margin-left: 15px; /* Increased margin */
+  transition: all 0.3s ease; /* Slower transition */
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px; /* Increased letter spacing */
+  color: #ffffff; /* Ensure text is white */
 }
 
 .send:hover {
-  background: #9b59b6; /* Lighter shade on hover */
-  box-shadow: 0 4px 10px rgba(0,0,0,0.3); /* Simplified shadow on hover */
-  transform: none; /* Removed transform on hover */
+  background: #9b59b6; /* Keep existing hover color */
+  box-shadow: 0 6px 15px rgba(0,0,0,0.35); /* More pronounced shadow on hover */
 }
 
 .disclaimer {
-  color: #808080;
-  font-size: 0.8rem; /* Slightly smaller font size */
+  color: #808080; /* Keep existing color */
+  font-size: 0.9rem; /* Slightly larger font size */
   text-align: center;
-  margin-top: 10px; /* Adjusted margin */
+  margin-top: 15px; /* Increased margin */
   max-width: 800px;
   padding: 0 20px;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); } /* Smaller translateY */
+  from { opacity: 0; transform: translateY(15px); } /* Slightly larger translateY */
   to { opacity: 1; transform: translateY(0); }
 }
 
 .mental-health-chat-section h3 {
-  color: #8e44ad;
-  margin-bottom: 20px; /* Adjusted margin */
-  font-size: 1.3rem; /* Slightly smaller font size */
+  color: #8e44ad; /* Keep existing accent color */
+  margin-bottom: 25px; /* Increased margin */
+  font-size: 1.5rem; /* Larger font size */
   text-align: center;
 }
 
@@ -366,12 +364,47 @@ body {
 
 .welcome-screen h2 {
   color: #8e44ad;
-  font-size: 2.2rem; /* Slightly smaller font size */
-  margin-bottom: 15px; /* Adjusted margin */
+  font-size: 2.2rem;
+  margin-bottom: 15px;
 }
 
 .welcome-screen p {
-  font-size: 1.1rem; /* Slightly smaller font size */
+  font-size: 1.1rem;
   color: #c0c0c0;
-  margin-bottom: 25px; /* Adjusted margin */
+  margin-bottom: 25px;
 }
+
+/* Loading animation for assistant messages */
+.loading-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 20px;
+}
+
+.loading-dots span {
+  width: 10px; /* Larger dots */
+  height: 10px;
+  background-color: #8e44ad; /* Keep existing accent color */
+  border-radius: 50%;
+  margin: 0 5px; /* Increased margin */
+  animation: bounce 0.6s infinite alternate;
+}
+
+.loading-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.loading-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes bounce {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-10px); /* Larger bounce */
+  }
+}
+

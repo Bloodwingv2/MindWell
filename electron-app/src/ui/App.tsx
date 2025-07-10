@@ -7,6 +7,7 @@ import homeicon from '../assets/homeicon.svg'
 import settingsicon from '../assets/settingsicon.svg'
 import voicemode from '../assets/voicemodeicon.svg'
 import { useEffect, useRef, useState } from 'react'
+import GratitudeJournal from './GratitudeJournal';
 import { motion } from 'framer-motion';
 
 
@@ -15,6 +16,7 @@ type Message = {
   role: 'user' | 'assistant';
   content: string;
   displayedContent?: string; // For character-by-character display
+  loading?: boolean; // Add loading state for assistant messages
 }
 
 interface Tracker {
@@ -29,12 +31,7 @@ const trackers: Tracker[] = [
     id: 'chat-assistant',
     title: 'Chat with MindWell',
     description: 'Chat with the MindWell AI assistant.',
-    content: `
-      <div class="mental-health-chat-section">
-        <h3>Chat with MindWell Assistant:</h3>
-        <!-- Chat messages and input will be rendered by React components -->
-      </div>
-    `,
+    content: '',
   },
   {
     id: 'mood-tracker',
@@ -58,16 +55,7 @@ const trackers: Tracker[] = [
     id: 'gratitude-journal',
     title: 'Gratitude Journal',
     description: 'Write down things you are grateful for.',
-    content: `
-      <h2>Gratitude Journal</h2>
-      <p>Take a moment to reflect on the positive things in your life. What are you grateful for today?</p>
-      <textarea id="gratitudeEntry" placeholder="Today I am grateful for..."></textarea>
-      <button id="saveGratitudeBtn">Save Entry</button>
-      <h3>Past Entries:</h3>
-      <ul id="gratitudeList" class="gratitude-list">
-        <!-- Gratitude entries will be dynamically added here -->
-      </ul>
-    `,
+    content: '', // Content will be rendered by the GratitudeJournal component
   },
   {
     id: 'breathing-exercises',
@@ -152,6 +140,7 @@ function App() {
     const storedGratitude = localStorage.getItem('gratitudeEntries');
     return storedGratitude ? JSON.parse(storedGratitude) : [];
   });
+  const [isLoadingResponse, setIsLoadingResponse] = useState(false); // New loading state
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null); // Ref to scroll to the bottom of chat
 
@@ -186,42 +175,7 @@ function App() {
 
   
 
-  useEffect(() => {
-    const saveGratitudeBtn = document.getElementById('saveGratitudeBtn');
-    const gratitudeEntryInput = document.getElementById('gratitudeEntry') as HTMLTextAreaElement;
-    const gratitudeListElement = document.getElementById('gratitudeList');
-
-    const renderGratitudeEntries = () => {
-      if (gratitudeListElement) {
-        gratitudeListElement.innerHTML = gratitudeEntries.map(entry => `
-          <li class="gratitude-item">
-            <strong>${entry.date}:</strong> ${entry.text}
-          </li>
-        `).join('');
-      }
-    };
-
-    const handleSaveGratitude = () => {
-      const entryText = gratitudeEntryInput.value.trim();
-      if (entryText) {
-        const newEntry = { id: Date.now().toString(), date: new Date().toLocaleDateString(), text: entryText };
-        setGratitudeEntries(prev => [...prev, newEntry]);
-        gratitudeEntryInput.value = '';
-      }
-    };
-
-    if (saveGratitudeBtn && gratitudeEntryInput) {
-      saveGratitudeBtn.addEventListener('click', handleSaveGratitude);
-    }
-
-    renderGratitudeEntries();
-
-    return () => {
-      if (saveGratitudeBtn) {
-        saveGratitudeBtn.removeEventListener('click', handleSaveGratitude);
-      }
-    };
-  }, [selectedTracker, gratitudeEntries, setGratitudeEntries]);
+  
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({behavior : 'smooth'})
@@ -243,7 +197,8 @@ function App() {
       id: (Date.now() + 1).toString(), // Generate unique ID for assistant
       role: 'assistant' as const, 
       content: '', 
-      displayedContent: ''
+      displayedContent: '',
+      loading: true // Set loading to true initially
     };
 
     let assistantMessageIndex: number = -1;
@@ -254,6 +209,7 @@ function App() {
       return updatedMessages;
     });
     setInput('');
+    setIsLoadingResponse(true); // Set loading to true when API call starts
 
     try {
       const response = await fetch('http://localhost:8000/stream', {
@@ -293,6 +249,7 @@ function App() {
             updated[assistantMessageIndex] = {
               ...updated[assistantMessageIndex],
               displayedContent: (updated[assistantMessageIndex].displayedContent || '') + chunk[i],
+              loading: false, // Set loading to false once content starts streaming
             };
             return updated;
           });
@@ -306,6 +263,7 @@ function App() {
           ...updated[assistantMessageIndex],
           content: botReply.trimEnd(), // Set the final content, trimmed
           displayedContent: (updated[assistantMessageIndex].displayedContent || '').trimEnd(), // Trim the displayed content
+          loading: false, // Ensure loading is false when streaming is complete
         };
         return updated;
       });
@@ -335,6 +293,8 @@ function App() {
         }
         return updated;
       });
+    } finally {
+      setIsLoadingResponse(false); // Set loading to false after API call completes (success or error)
     }
   };
   
@@ -386,11 +346,12 @@ function App() {
       <div className="main">
         {selectedTracker ? (
           <div className="tracker-content-area">
-            {selectedTracker.id !== 'chat-assistant' && (
-              <div className="tracker-text" dangerouslySetInnerHTML={{ __html: selectedTracker.content }} />
-            )}
-            {selectedTracker.id === 'wellness-tracker' && (
+            {selectedTracker.id === 'gratitude-journal' ? (
+              <GratitudeJournal gratitudeEntries={gratitudeEntries} setGratitudeEntries={setGratitudeEntries} />
+            ) : selectedTracker.id === 'wellness-tracker' ? (
               <WellnessTracker />
+            ) : (
+              <div className="tracker-text" dangerouslySetInnerHTML={{ __html: selectedTracker.content }} />
             )}
             {selectedTracker.id === 'chat-assistant' && (
               <div className="mental-health-chat-section">
@@ -407,6 +368,13 @@ function App() {
                       <div className="message-content">
                         <p className="txt">
                           {message.displayedContent || message.content}
+                          {message.role === 'assistant' && message.loading && (
+                            <div className="loading-dots">
+                              <span></span>
+                              <span></span>
+                              <span></span>
+                            </div>
+                          )}
                         </p>
                       </div>
                     </motion.div>
@@ -420,12 +388,13 @@ function App() {
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ type: "spring", stiffness: 300, damping: 20 }}
                   >
-                    <input type="text" placeholder='Ask anything about mental health...' value={input} onChange={(e) => { setInput(e.target.value) }} onKeyDown={handleKeyDown} />
+                    <input type="text" placeholder='Ask anything about mental health...' value={input} onChange={(e) => { setInput(e.target.value) }} onKeyDown={handleKeyDown} disabled={isLoadingResponse} />
                     <motion.button
                       className="send"
                       onClick={askGemma}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
+                      disabled={isLoadingResponse}
                     ><img src={sentbtn} alt="" className="sendbtnimg"></img></motion.button>
                   </motion.div>
                   <p className="disclaimer">MindWell Assistant provides general information and support. It is not a substitute for professional medical advice, diagnosis, or treatment.</p>
