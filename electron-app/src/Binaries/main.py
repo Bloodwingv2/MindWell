@@ -1,4 +1,5 @@
 
+
 # Importing necessary libraries for LLM, Ollama and Speech Synthesis
 from langchain_ollama import OllamaLLM
 from langchain_core.prompts import ChatPromptTemplate
@@ -48,61 +49,23 @@ class customhandler(StreamingStdOutCallbackHandler):
         self.buffer = ""
         super().__init__()
         self.queue = asyncio.Queue() # Initializing an asyncio queue to handle tokens
+        self.streaming_enabled = True # Flag to control streaming
 
     async def on_llm_new_token(self, token: str, **kwargs)-> None:
-        print(token, end= "", flush=True)
-        self.buffer += token
-        await self.queue.put(token) # Adding Token to the queue for FastApi Processing
+        if self.streaming_enabled:
+            print(token, end= "", flush=True)
+            self.buffer += token
+            await self.queue.put(token) # Adding Token to the queue for FastApi Processing
         #if self.buffer.endswith(('.', '!', '?')) and len(self.buffer.strip().split()) >= 4: # Added Minor space to fix sentence processing error
             #synthesis(self.buffer)
             #self.buffer = ""
             
-    async def graph_creator():
-        pass
-        
-
-    async def token_stream(self):  # ✅ MUST have self!
-        buffer = ""
-        stream_buffer = ""
-        tag_found = False
-        mood_value = None
-
+    async def token_stream(self):
         while True:
             token = await self.queue.get()
-
             if token == "[END]":
                 break
-
-            buffer += token
-            stream_buffer += token
-
-            if buffer.strip().endswith("0Macintosh"):
-                mood_value = 0
-                tag_found = True
-                buffer = buffer.replace("0Macintosh", "")
-                stream_buffer = buffer
-                break
-            elif buffer.strip().endswith("1Macintosh"):
-                mood_value = 1
-                tag_found = True
-                buffer = buffer.replace("1Macintosh", "")
-                stream_buffer = buffer
-                break
-            elif buffer.strip().endswith("2Macintosh"):
-                mood_value = 2
-                tag_found = True
-                buffer = buffer.replace("2Macintosh", "")
-                stream_buffer = buffer
-                break
-
             yield token.encode("utf-8")
-
-        # Flush remaining text (after tag removal)
-        for char in stream_buffer:
-            yield char.encode("utf-8")
-
-        if tag_found:
-            await log_mood(mood_value)
 
 # Main Code
 app = FastAPI() # Initializing FastAPI app
@@ -119,13 +82,7 @@ app.add_middleware(
 template = """
 You are GemmaTalk, a positive, friendly, and knowledgeable AI assistant created by Mirang Bhandari (a male human). Your purpose is to support and uplift the user at all times, especially during tough situations. Always highlight the positive side and reassure the user, no matter how bad things seem. Be helpful, kind, and encouraging in every response.
 
-At the end of your answer always, add a tag based on the user’s emotional tone:
-
-"0Macintosh" for happy
-
-"1Macintosh" for sad
-
-"2Macintosh" for neutral
+Please keep the responses concise and to the point, while still being supportive and positive.
 
 Conversation history: {context}
 User message: {question}
@@ -135,6 +92,36 @@ Your reply:
 
 # Create prompt template once (reusable)
 prompt = ChatPromptTemplate.from_template(template)
+
+# New mood analysis components
+mood_template = """
+Analyze the user's emotional tone from the following message and respond with a single digit: 0 for happy, 1 for sad, or 2 for neutral. Do not provide any other text or explanation.
+
+User message: {question}
+
+Your response:
+"""
+mood_prompt = ChatPromptTemplate.from_template(mood_template)
+
+async def analyze_and_log_mood(question: str, model: OllamaLLM, handler: customhandler):
+    try:
+        handler.streaming_enabled = False # Disable streaming for mood analysis
+        chain = mood_prompt | model
+        
+        # Get the mood analysis result
+        result = await asyncio.to_thread(chain.invoke, {"question": question})
+        
+        # The result should be a string like "0", "1", or "2"
+        mood_str = result.strip()
+        if mood_str in ["0", "1", "2"]:
+            await log_mood(int(mood_str))
+        else:
+            logging.warning(f"Mood analysis returned an unexpected value: {mood_str}")
+            
+    except Exception as e:
+        logging.error(f"Error during mood analysis: {str(e)}")
+    finally:
+        handler.streaming_enabled = True # Re-enable streaming
 
 @app.post("/stream")
 async def query_stream(request: Request):
@@ -163,12 +150,14 @@ async def query_stream(request: Request):
         model_check = subprocess.run(['ollama', 'list'], capture_output=True, text=True)
         return model_check
 
-    async def run_chain():
+    async def run_chain_and_analyze_mood():
         try:
             await asyncio.to_thread(chain.invoke, {
                 "context": parsed.context,
                 "question": parsed.question
             })
+            # After the streaming is complete, analyze the mood
+            await analyze_and_log_mood(parsed.question, model, handler)
         except Exception as e:
             # Main Code for Calling async functions
             logging.error(f"Chain invoke error: {str(e)}")
@@ -186,7 +175,7 @@ async def query_stream(request: Request):
         finally:
             await handler.queue.put("[END]")
 
-    asyncio.create_task(run_chain())
+    asyncio.create_task(run_chain_and_analyze_mood())
 
     return StreamingResponse(handler.token_stream(), media_type="text/plain")
 
@@ -250,4 +239,5 @@ if __name__ == "__main__":
     #print("ISAC:", end=" ", flush=True) # Moved Print statement here due to incorrect CLI placement and used flush for immediate printing
     #result = chain.invoke({"context" : "", "question" : query})
     #synthesis(result)
-    #print("\n")
+    #print("")
+

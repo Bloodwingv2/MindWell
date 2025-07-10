@@ -1,52 +1,189 @@
+.gratitude-journal-container {
+  display: flex;
+  width: 800px;
+  height: 600px;
+  margin: 50px auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  border-radius: 10px;
+  position: relative;
+  background: linear-gradient(to right, #f0f0f0 50%, #e0e0e0 50%);
+}
+
+.journal-cover {
+  width: 50%;
+  background: linear-gradient(135deg, #4a235a, #8e44ad);
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #ffffff;
+  font-size: 2.5rem;
+  font-weight: bold;
+  text-align: center;
+  padding: 20px;
+  box-shadow: inset -5px 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.journal-binding {
+  width: 30px;
+  background-color: #333;
+  position: relative;
+  border-top: 10px solid #555;
+  border-bottom: 10px solid #555;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.journal-binding::before,
+.journal-binding::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 10px;
+  height: 20px;
+  background-color: #555;
+  border-radius: 5px;
+}
+
+.journal-binding::before {
+  top: 20%;
+}
+
+.journal-binding::after {
+  bottom: 20%;
+}
+
+.journal-pages {
+  width: 50%;
+  background-color: #fdfdfd;
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
+  padding: 20px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  position: relative;
+}
+
+.journal-page {
+  padding-bottom: 20px;
+  border-bottom: 1px dashed #ccc;
+  margin-bottom: 20px;
+}
+
+.journal-page:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 5px;
+}
+
+.page-header h2 {
+  font-size: 1.8rem;
+  color: #333;
+  margin: 0;
+}
+
+.page-header p {
+  font-size: 0.9rem;
+  color: #777;
+  margin: 0;
+}
+
 .gratitude-textarea {
-  width: 100%;
-  min-height: 100px;
+  width: calc(100% - 24px);
+  min-height: 120px;
   padding: 12px;
-  border-radius: 6px;
-  border: 1px solid #4a235a;
-  background: #2a2a4a;
-  color: #e0e0e0;
-  font-size: 0.95rem;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+  background: #fff;
+  color: #333;
+  font-size: 1rem;
   margin-top: 15px;
   box-sizing: border-box;
   resize: vertical;
+  font-family: 'Georgia', serif;
+  line-height: 1.6;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
 }
 
 .gratitude-textarea:focus {
   outline: none;
   border-color: #8e44ad;
-  box-shadow: 0 0 0 1px rgba(142, 68, 173, 0.2);
+  box-shadow: 0 0 0 2px rgba(142, 68, 173, 0.2);
 }
 
 .gratitude-save-button {
   background: #8e44ad;
   color: #ffffff;
   border: none;
-  padding: 8px 15px;
-  border-radius: 6px;
+  padding: 10px 20px;
+  border-radius: 5px;
   cursor: pointer;
-  font-size: 0.95rem;
-  margin-top: 10px;
-  transition: all 0.2s ease;
+  font-size: 1rem;
+  margin-top: 15px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 
 .gratitude-save-button:hover {
   background: #9b59b6;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
 }
 
 .gratitude-list-styles {
   list-style: none;
   padding: 0;
-  margin-top: 15px;
+  margin-top: 20px;
 }
 
 .gratitude-item-styles {
-  background: #2a2a4a;
-  padding: 10px 12px;
-  border-radius: 6px;
-  margin-bottom: 8px;
-  border: 1px solid #33334d;
-  color: #c0c0c0;
-  line-height: 1.4;
+  background: #ffffff;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  border: 1px solid #eee;
+  color: #555;
+  line-height: 1.6;
+  font-family: 'Georgia', serif;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.entry-date {
+  font-weight: bold;
+  color: #8e44ad;
+  margin-right: 8px;
+}
+
+.no-entries {
+  color: #777;
+  font-style: italic;
+  text-align: center;
+  padding: 20px;
+}
+
+/* Custom Scrollbar for Journal Pages */
+.journal-pages::-webkit-scrollbar {
+  width: 10px;
+}
+
+.journal-pages::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.journal-pages::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 10px;
+}
+
+.journal-pages::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }

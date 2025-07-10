@@ -13,7 +13,12 @@ import {
   Filler,
   type ChartOptions,
   type TooltipItem,
+  ChartData,
+  ScriptableContext,
+  ScriptableSegmentContext,
 } from 'chart.js';
+
+
 
 ChartJS.register(
   LineElement,
@@ -47,21 +52,29 @@ const mapMoodToChartValue = (mood: number) => {
 
 const WellnessTracker: React.FC = () => {
   const [moodData, setMoodData] = useState<MoodEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchMoodData = async () => {
       try {
         const res = await fetch("http://localhost:8000/mood");
-        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        const data = await res.json() as MoodEntry[];
         setMoodData(data);
-      } catch (error) {
+      } catch (error: unknown) {
+        setError('Failed to fetch mood data. Please try again later.');
         console.error("Failed to fetch mood data:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchMoodData();
   }, []);
 
-  const chartData = {
+  const chartData: ChartData<'line'> = {
     labels: moodData.map(entry =>
       new Date(entry.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
     ),
@@ -69,15 +82,24 @@ const WellnessTracker: React.FC = () => {
       {
         label: 'Mood',
         data: moodData.map(entry => mapMoodToChartValue(entry.mood)),
-        borderColor: '#8e44ad',
-        backgroundColor: 'rgba(142, 68, 173, 0.2)',
+        borderColor: '#a78bfa',
+        backgroundColor: (context: ScriptableContext<'line'>) => {
+          const ctx = context.chart.ctx;
+          const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+          gradient.addColorStop(0, 'rgba(167, 139, 250, 0.3)');
+          gradient.addColorStop(1, 'rgba(167, 139, 250, 0)');
+          return gradient;
+        },
         fill: true,
         tension: 0.4,
+        segment: {
+          tension: (ctx: ScriptableSegmentContext) => (ctx.p0.raw === 0 || ctx.p1.raw === 0 ? 0 : 0.4),
+        },
         pointRadius: 6,
         pointBackgroundColor: '#fff',
-        pointBorderColor: '#8e44ad',
+        pointBorderColor: '#a78bfa',
         pointHoverRadius: 8,
-        pointHoverBackgroundColor: '#8e44ad',
+        pointHoverBackgroundColor: '#a78bfa',
         pointHoverBorderColor: '#fff',
       },
     ],
@@ -86,12 +108,16 @@ const WellnessTracker: React.FC = () => {
   const options: ChartOptions<'line'> = {
     responsive: true,
     maintainAspectRatio: false,
+    animation: {
+      duration: 1000,
+      easing: 'easeInOutQuart',
+    },
     layout: {
       padding: {
-        top: 20,
-        bottom: 20,
+        top: 30,
+        bottom: 30,
         left: 10,
-        right: 20,
+        right: 10,
       }
     },
     plugins: {
@@ -126,12 +152,13 @@ const WellnessTracker: React.FC = () => {
                 return `Mood: ${moodLabel}`;
             }
         }
-      }
+      },
     },
     scales: {
       y: {
-        min: -0.5,
-        max: 2.5,
+        min: -0.1,
+        max: 2.2,
+        padding: { top: 0, bottom: 20 },
         ticks: {
           callback: function(value: string | number) {
             const numValue = Number(value);
@@ -151,6 +178,8 @@ const WellnessTracker: React.FC = () => {
         },
       },
       x: {
+        max: 10,
+        offset: false,
         ticks: {
           color: '#b0b0d0',
           font: {
@@ -172,10 +201,19 @@ const WellnessTracker: React.FC = () => {
         <p>Visualize your mood trends and reflect on your emotional journey.</p>
       </div>
       <div className="wellness-graph-container">
-        {moodData.length > 0 ? (
+        {isLoading ? (
+          <div className="loading-container">
+            <div className="spinner"></div>
+            <p>Loading mood data...</p>
+          </div>
+        ) : error ? (
+          <div className="error-container">
+            <p>{error}</p>
+          </div>
+        ) : moodData.length > 0 ? (
           <Line options={options} data={chartData} />
         ) : (
-          <p>Loading mood data...</p>
+          <p>No mood data available.</p>
         )}
       </div>
     </div>
