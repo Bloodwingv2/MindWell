@@ -1,5 +1,6 @@
 import './App.css'
 import WellnessTracker from './WellnessTracker'; // Import WellnessTracker
+import MoodSummarizer from './MoodSummarizer'; // Import MoodSummarizer
 
 import ISAClogo from '../assets/MindWell.png'
 import sentbtn from '../assets/send-svgrepo-com.svg'
@@ -7,7 +8,6 @@ import homeicon from '../assets/homeicon.svg'
 import settingsicon from '../assets/settingsicon.svg'
 import voicemode from '../assets/voicemodeicon.svg'
 import { useEffect, useRef, useState } from 'react'
-import GratitudeJournal from './GratitudeJournal';
 import { motion } from 'framer-motion';
 
 
@@ -34,28 +34,10 @@ const trackers: Tracker[] = [
     content: '',
   },
   {
-    id: 'mood-tracker',
-    title: 'Mood Tracker',
-    description: 'Track your daily mood and identify patterns.',
-    content: `
-      <h2>Mood Tracker</h2>
-      <p>Use this tracker to log your mood throughout the day. Understanding your mood patterns can help you identify triggers and develop coping strategies.</p>
-      <!-- Mood tracking UI elements will go here -->
-      <p>How are you feeling today?</p>
-      <div class="mood-options">
-        <button>😊 Happy</button>
-        <button>😐 Neutral</button>
-        <button>😔 Sad</button>
-        <button>😠 Angry</button>
-        <button>😟 Anxious</button>
-      </div>
-    `,
-  },
-  {
-    id: 'gratitude-journal',
-    title: 'Gratitude Journal',
-    description: 'Write down things you are grateful for.',
-    content: '', // Content will be rendered by the GratitudeJournal component
+    id: 'mood-summarizer',
+    title: 'Mood Summarizer',
+    description: 'Get AI-driven insights on your mood.',
+    content: '', // Content will be rendered by the MoodSummarizer component
   },
   {
     id: 'breathing-exercises',
@@ -136,10 +118,7 @@ function App() {
     return storedCompleted ? JSON.parse(storedCompleted) : [];
   });
   const [currentAffirmation, setCurrentAffirmation] = useState('');
-  const [gratitudeEntries, setGratitudeEntries] = useState<{ id: string; date: string; text: string }[]>(() => {
-    const storedGratitude = localStorage.getItem('gratitudeEntries');
-    return storedGratitude ? JSON.parse(storedGratitude) : [];
-  });
+  const [moodEntries, setMoodEntries] = useState<{ mood: string; date: string }[]>([]);
   const [isLoadingResponse, setIsLoadingResponse] = useState(false); // New loading state
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null); // Ref to scroll to the bottom of chat
@@ -153,10 +132,6 @@ function App() {
   }, [completedTrackers]);
 
   
-
-  useEffect(() => {
-    localStorage.setItem('gratitudeEntries', JSON.stringify(gratitudeEntries));
-  }, [gratitudeEntries]);
 
   useEffect(() => {
     // Set a random affirmation on component mount and every 20 seconds
@@ -346,8 +321,8 @@ function App() {
       <div className="main">
         {selectedTracker ? (
           <div className="tracker-content-area">
-            {selectedTracker.id === 'gratitude-journal' ? (
-              <GratitudeJournal gratitudeEntries={gratitudeEntries} setGratitudeEntries={setGratitudeEntries} />
+            {selectedTracker.id === 'mood-summarizer' ? (
+              <MoodSummarizer moodEntries={moodEntries} setMoodEntries={setMoodEntries} />
             ) : selectedTracker.id === 'wellness-tracker' ? (
               <WellnessTracker />
             ) : (

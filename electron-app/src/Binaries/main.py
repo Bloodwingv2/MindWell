@@ -21,6 +21,7 @@ import subprocess
 # Mood imports to log for graphs
 import json
 from datetime import datetime
+from memory import add_memory, load_memories
 
 async def log_mood(mood: int):
     entry = {"mood": mood, "timestamp": datetime.now().isoformat()}
@@ -123,6 +124,32 @@ async def analyze_and_log_mood(question: str, model: OllamaLLM, handler: customh
     finally:
         handler.streaming_enabled = True # Re-enable streaming
 
+# Function to check for positive memories
+async def is_positive(question: str, model: OllamaLLM, handler: customhandler):
+    """Analyzes if the user's message is positive."""
+    try:
+        handler.streaming_enabled = False  # Disable streaming for analysis
+        # A simple prompt to classify the message
+        positive_template = """
+Analyze the user's message and determine if it's a positive memory worth remembering.
+Respond with 'yes' if it is, and 'no' if it is not. Do not provide any other text or explanation.
+
+User message: {question}
+
+Your response:
+"""
+        positive_prompt = ChatPromptTemplate.from_template(positive_template)
+        chain = positive_prompt | model
+        
+        result = await asyncio.to_thread(chain.invoke, {"question": question})
+        
+        return result.strip().lower() == 'yes'
+    except Exception as e:
+        logging.error(f"Error during positivity analysis: {str(e)}")
+        return False
+    finally:
+        handler.streaming_enabled = True
+
 @app.post("/stream")
 async def query_stream(request: Request):
     data = await request.json()
@@ -152,12 +179,21 @@ async def query_stream(request: Request):
 
     async def run_chain_and_analyze_mood():
         try:
+            # Load memories and use them as context
+            memories = load_memories()
+            context = "\n".join([mem['memory'] for mem in memories])
+
             await asyncio.to_thread(chain.invoke, {
-                "context": parsed.context,
+                "context": context,
                 "question": parsed.question
             })
             # After the streaming is complete, analyze the mood
             await analyze_and_log_mood(parsed.question, model, handler)
+
+            # Check if the conversation is positive and save it as a memory
+            if await is_positive(parsed.question, model, handler):
+                memories = load_memories()
+                add_memory(parsed.question, memories)
         except Exception as e:
             # Main Code for Calling async functions
             logging.error(f"Chain invoke error: {str(e)}")
@@ -204,6 +240,11 @@ async def get_mood():
         return JSONResponse(content=mood_entries)
     except (FileNotFoundError, json.JSONDecodeError):
         return JSONResponse(content=[])
+
+@app.get("/memory")
+async def get_memory():
+    """Returns all memories."""
+    return JSONResponse(content=load_memories())
 
 # Added Main Block for running FastApi Server in Production when turned to .exe
 if __name__ == "__main__":
