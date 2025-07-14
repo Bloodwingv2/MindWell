@@ -1,5 +1,3 @@
-
-
 # Importing necessary libraries for LLM, Ollama and Speech Synthesis
 from langchain_ollama import OllamaLLM
 from langchain_core.prompts import ChatPromptTemplate
@@ -21,7 +19,7 @@ import subprocess
 # Mood imports to log for graphs
 import json
 from datetime import datetime
-from memory import add_memory, load_memories
+from memory import get_relevant_memories_general, get_relevant_memories_core, add_memory_core, add_memory_general, load_memories_core, load_memories_general
 
 async def log_mood(mood: int):
     entry = {"mood": mood, "timestamp": datetime.now().isoformat()}
@@ -114,13 +112,16 @@ async def analyze_and_log_mood(question: str, model: OllamaLLM, handler: customh
         
         # The result should be a string like "0", "1", or "2"
         mood_str = result.strip()
+        current_mood = None # Initialize current_mood
         if mood_str in ["0", "1", "2"]:
-            await log_mood(int(mood_str))
+            current_mood = int(mood_str)
+            await log_mood(current_mood)
         else:
             logging.warning(f"Mood analysis returned an unexpected value: {mood_str}")
-            
+        return current_mood # Return the mood
     except Exception as e:
         logging.error(f"Error during mood analysis: {str(e)}")
+        return None # Return None on error
     finally:
         handler.streaming_enabled = True # Re-enable streaming
 
@@ -176,24 +177,98 @@ async def query_stream(request: Request):
     async def check_model():
         model_check = subprocess.run(['ollama', 'list'], capture_output=True, text=True)
         return model_check
+    
+    async def is_valid(question: str, model: OllamaLLM, handler: customhandler):
+        """Analyzes if the user's message is valid for memory and returns structured metadata."""
+        try:
+            handler.streaming_enabled = False
+
+            # 💡 Strict prompt for reliable formatting
+            valid_prompt = ChatPromptTemplate.from_template("""
+            You are a memory filter AI.
+
+            Your task is to determine if the user's message contains any factual, personal, or goal-related information that should be stored in memory.
+
+            Respond strictly in this format:
+            validity: true/false
+            type: <category like name, location, goal, preference>
+            value: <summarized version of the message, clearly expressed as a fact>
+
+            Examples:
+            User: I am Hrithik  
+            → validity: true  
+            → type: name  
+            → value: The user's name is Hrithik.
+
+            User: I like biryani  
+            → validity: true  
+            → type: preference  
+            → value: The user likes biryani.
+
+            User: What is my name?  
+            → validity: false
+
+            Now analyze the user's message below:
+            User message: {question}
+            """)
+
+            chain = valid_prompt | model
+
+            # Run inference in separate thread
+            result = await asyncio.to_thread(chain.invoke, {"question": question})
+
+            lines = result.strip().splitlines()
+            validity = False
+            mem_type = ""
+            value = ""
+
+            for line in lines:
+                if line.lower().startswith("validity:"):
+                    validity = "true" in line.lower()
+                elif line.lower().startswith("type:"):
+                    mem_type = line.split(":", 1)[-1].strip()
+                elif line.lower().startswith("value:"):
+                    value = line.split(":", 1)[-1].strip()
+
+            return validity, mem_type, value
+
+        except Exception as e:
+            logging.error(f"[is_valid error] {e}")
+            return False, "", ""
+        finally:
+            handler.streaming_enabled = True
 
     async def run_chain_and_analyze_mood():
         try:
-            # Load memories and use them as context
-            memories = load_memories()
-            context = "\n".join([mem['memory'] for mem in memories])
+            # Analyze mood first
+            current_mood = await analyze_and_log_mood(parsed.question, model, handler)
+
+            # Always load core memories
+            core_memories = get_relevant_memories_core(parsed.question)
+            core_context = "\n".join([mem['memory'] for mem in core_memories])
+
+            context = core_context
+            if current_mood == 1:  # If mood is sad (1)
+                relevant_memories = get_relevant_memories_core(parsed.question)
+                context += "\n" + "\n".join([mem['memory'] for mem in relevant_memories])
+            else: # For neutral or happy moods, use general memories
+                relevant_memories = get_relevant_memories_general(parsed.question)
+                context += "\n" + "\n".join([mem['memory'] for mem in relevant_memories])
 
             await asyncio.to_thread(chain.invoke, {
                 "context": context,
                 "question": parsed.question
             })
-            # After the streaming is complete, analyze the mood
-            await analyze_and_log_mood(parsed.question, model, handler)
 
-            # Check if the conversation is positive and save it as a memory
+            # Check if the conversation is positive and save it as a mood memory
             if await is_positive(parsed.question, model, handler):
-                memories = load_memories()
-                add_memory(parsed.question, memories)
+                add_memory_core(parsed.question)
+            
+            # Always add the user's question as a general memory
+            valid, mem_type, value = await is_valid(parsed.question, model, handler)
+            if valid and value:
+                add_memory_general(value)
+                
         except Exception as e:
             # Main Code for Calling async functions
             logging.error(f"Chain invoke error: {str(e)}")
@@ -241,10 +316,16 @@ async def get_mood():
     except (FileNotFoundError, json.JSONDecodeError):
         return JSONResponse(content=[])
 
-@app.get("/memory")
+@app.get("/core_memory")
 async def get_memory():
-    """Returns all memories."""
-    return JSONResponse(content=load_memories())
+    """Returns all core memories."""
+    return JSONResponse(content=load_memories_core())
+
+@app.get("/general_memory")
+async def get_mood_memory():
+    """Returns all general memories."""
+    return JSONResponse(content=load_memories_general())
+
 
 # Added Main Block for running FastApi Server in Production when turned to .exe
 if __name__ == "__main__":

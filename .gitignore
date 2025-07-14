@@ -21,6 +21,8 @@ installer
 electron-app/src/assets/OllamaSetup.exe
 Voice_samples
 talkenv
+gemma
+memory.db
 *.local
 
 # Editor directories and files
