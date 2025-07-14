@@ -138,7 +138,7 @@ def add_memory_core(memory_text, table="core_memories"):
         conn.close()
         
 
-def add_memory_general(mem_type:str, memory_text, table="general_memories"):
+def add_memory_general(memory_text, table="general_memories"):
     """Adds a new, unique memory to the specified table."""
     conn = sqlite3.connect(MEMORY_DB)
     cursor = conn.cursor()

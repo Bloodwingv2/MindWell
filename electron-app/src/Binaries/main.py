@@ -15,6 +15,7 @@ import logging
 
 # Import subprocess for model download
 import subprocess
+import os
 
 # Mood imports to log for graphs
 import json
@@ -238,6 +239,83 @@ async def query_stream(request: Request):
         finally:
             handler.streaming_enabled = True
 
+    async def today_generate(question: str, model: OllamaLLM, handler: customhandler):
+        """Generates today's conversation and stores it in a daily JSON file."""
+        try:
+            handler.streaming_enabled = False
+
+            # Get today's date and build today's filename
+            today_str = datetime.now().strftime("%Y-%m-%d")
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            today_filename = os.path.join(script_dir, f"today_summary_{today_str}.json")
+
+            # Delete any old summary files (only one file per day allowed)
+            for f in os.listdir(script_dir):
+                if f.startswith("today_summary_") and f.endswith(".json") and f != os.path.basename(today_filename):
+                    os.remove(os.path.join(script_dir, f))
+
+            # Load existing summaries if today's file already exists
+            existing_context = ""
+            if os.path.exists(today_filename):
+                with open(today_filename, "r") as f:
+                    existing_data = json.load(f)
+                    if existing_data and isinstance(existing_data, list) and len(existing_data) > 0 and isinstance(existing_data[0], dict):
+                        # Assuming the format is [{'summary': '...', 'tips': '...'}]
+                        existing_summary = existing_data[0].get("summary", "")
+                        existing_tips = existing_data[0].get("tips", "")
+                        existing_context = f"### Summary\n{existing_summary}\n\n### Tips\n{existing_tips}"
+
+            # Build prompt using existing context
+            prompt_template = ChatPromptTemplate.from_template("""
+            You are an assistant that provides a short, structured summary of a mental health conversation, followed by actionable tips.
+
+            Context (if any): {existing_context}
+
+            User: {question}
+
+            Respond in this format:
+            ### Summary
+            <Concise summary here>
+
+            ### Tips
+            - Tip 1
+            - Tip 2
+            - Tip 3
+            """)
+            
+            chain = prompt_template | model
+
+            # Run model inference in a thread-safe way
+            result = await asyncio.to_thread(chain.invoke, {"existing_context": existing_context, "question": question })
+
+            # Store new result in today’s file
+            parts = result.strip().split("### Tips", maxsplit=1)
+
+            summary_part = (
+                parts[0].replace("### Summary", "").replace("*", "").strip()
+                if len(parts) > 0 else ""
+            )
+
+            tips_part = (
+                parts[1].replace("*", "").strip()
+                if len(parts) > 1 else ""
+            )
+
+            entry = {
+                "summary": summary_part,
+                "tips": tips_part
+            }
+
+            with open(today_filename, "w") as f:
+                json.dump([entry], f, indent=4)
+
+
+        except Exception as e:
+            logging.error(f"[today_generate error] {e}")
+        finally:
+            handler.streaming_enabled = True
+        
+    
     async def run_chain_and_analyze_mood():
         try:
             # Analyze mood first
@@ -268,6 +346,9 @@ async def query_stream(request: Request):
             valid, mem_type, value = await is_valid(parsed.question, model, handler)
             if valid and value:
                 add_memory_general(value)
+
+            # Add the conversation to today's log
+            await today_generate(parsed.question, model, handler)
                 
         except Exception as e:
             # Main Code for Calling async functions
@@ -325,6 +406,19 @@ async def get_memory():
 async def get_mood_memory():
     """Returns all general memories."""
     return JSONResponse(content=load_memories_general())
+
+@app.get("/mood_summary")
+async def get_mood_progression_endpoint():
+    """Returns the mood progression for the day."""
+    today_str = datetime.now().strftime("%Y-%m-%d")
+    today_filename = f"today_summary_{today_str}.json"
+    try:
+        with open(today_filename, "r") as f:
+            mood_entries = json.load(f)
+        return JSONResponse(content=mood_entries)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return JSONResponse(content=[])
+    
 
 
 # Added Main Block for running FastApi Server in Production when turned to .exe
