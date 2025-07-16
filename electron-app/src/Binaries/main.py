@@ -59,6 +59,7 @@ class QueryRequest(BaseModel): # Request structure for FastAPI
     question: str
     context: str = ""
     model: str = "gemma3n:e2b"  # Default model with fallback
+    language: str = "en" # Default to English
     
 class MoodRequest(BaseModel):
     graph: int
@@ -94,7 +95,7 @@ app.add_middleware(
 
 # --- Prompt Templates ---
 template = """
-You are GemmaTalk, a positive, friendly, and knowledgeable AI assistant created by Mirang Bhandari (a male human). Your purpose is to support and uplift the user at all times, especially during tough situations. Always highlight the positive side and reassure the user, no matter how bad things seem. Be helpful, kind, and encouraging in every response.
+You are GemmaTalk, a positive, friendly, and knowledgeable AI assistant created by Mirang Bhandari (a male human). Your purpose is to support and uplift the user at all times, especially during tough situations. Always highlight the positive side and reassure the user, no matter how bad things seem. Be helpful, kind, and encouraging in every response. Respond in {language} language.
 
 Please keep the responses concise and to the point, while still being supportive and positive.
 
@@ -220,7 +221,8 @@ async def query_stream(request: Request):
             
             await asyncio.to_thread(chain.invoke, {
                 "context": context,
-                "question": parsed.question
+                "question": parsed.question,
+                "language": parsed.language
             })
 
             # After generation, save to buffer
