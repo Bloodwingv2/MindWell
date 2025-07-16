@@ -1,29 +1,52 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import './MoodSummarizer.css';
 
 const MoodSummarizer: React.FC = () => {
   const [summary, setSummary] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [tips, setTips] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  const generateSummary = async () => {
+  const fetchSummary = async () => {
     setIsLoading(true);
     try {
       const response = await fetch('http://localhost:8000/mood_summary');
       const data = await response.json();
 
-      if (data && data.length > 0 && typeof data[0].summary === 'string') {
-        setSummary(data[0].summary);
+      if (data && data.length > 0) {
+        setSummary(data[0].summary || "No summary available for today.");
+        if (data[0].tips) {
+          setTips(data[0].tips.split('- ').filter(t => t.trim() !== ''));
+        }
       } else {
         setSummary("No summary available for today.");
+        setTips([]);
       }
     } catch (error) {
-      console.error('Error generating summary:', error);
-      setSummary('Could not generate summary. Please try again later.');
+      console.error('Error fetching summary:', error);
+      setSummary('Could not fetch summary. Please try again later.');
     } finally {
       setIsLoading(false);
     }
   };
+
+  const processConversations = async () => {
+    setIsProcessing(true);
+    try {
+      await fetch('http://localhost:8000/process_conversations', { method: 'POST' });
+      // After processing, refresh the summary data
+      fetchSummary();
+    } catch (error) {
+      console.error('Error processing conversations:', error);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSummary();
+  }, []);
 
   return (
     <motion.div
@@ -32,23 +55,42 @@ const MoodSummarizer: React.FC = () => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <h1>Mood Summarizer</h1>
-      <p>Get AI-generated insights into your mood patterns and receive personalized suggestions for improvement.</p>
       <div className="mood-summary-section">
-        <div className="summary-placeholder">
-          {isLoading ? (
-            <div className="loading-dots">
-              <span></span>
-              <span></span>
-              <span></span>
-            </div>
-          ) : (
-            <div dangerouslySetInnerHTML={{ __html: summary || 'Your AI-generated summary will appear here.' }} />
-          )}
+        <div className="header-section">
+            <h1>Mood Summary</h1>
+            <motion.button 
+              className="process-button" 
+              onClick={processConversations} 
+              disabled={isProcessing}
+              whileHover={{ scale: 1.05 }} 
+              whileTap={{ scale: 0.95 }}
+            >
+              {isProcessing ? 'Processing...' : 'Analyze Conversations'}
+            </motion.button>
         </div>
-        <motion.button className="summarize-button" onClick={generateSummary} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} disabled={isLoading}>
-          {isLoading ? 'Generating...' : 'Generate Summary'}
-        </motion.button>
+        {isLoading ? (
+          <div className="loading-dots">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        ) : (
+          <>
+            <div className="summary-placeholder">
+              <p>{summary}</p>
+            </div>
+            {tips.length > 0 && (
+              <div className="tips-section">
+                <h4>Personalized Tips</h4>
+                <ul>
+                  {tips.map((tip, index) => (
+                    <li key={index}>{tip}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </motion.div>
   );

@@ -18,8 +18,6 @@ import {
   
 } from 'chart.js';
 
-
-
 ChartJS.register(
   LineElement,
   PointElement,
@@ -53,24 +51,43 @@ const mapMoodToChartValue = (mood: number) => {
 const WellnessTracker: React.FC = () => {
   const [moodData, setMoodData] = useState<MoodEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchMoodData = async () => {
-      try {
-        const res = await fetch("http://localhost:8000/mood");
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
-        }
-        const data = await res.json() as MoodEntry[];
-        setMoodData(data);
-      } catch (error: unknown) {
-        setError('Failed to fetch mood data. Please try again later.');
-        console.error("Failed to fetch mood data:", error);
-      } finally {
-        setIsLoading(false);
+  const fetchMoodData = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch("http://localhost:8000/mood");
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
       }
-    };
+      const data = await res.json() as MoodEntry[];
+      setMoodData(data);
+    } catch (error: unknown) {
+      setError('Failed to fetch mood data. Please try again later.');
+      console.error("Failed to fetch mood data:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRefresh = async () => {
+      setIsProcessing(true);
+      setError(null);
+      try {
+          // First, process any buffered conversations to update the mood log
+          await fetch("http://localhost:8000/process_conversations", { method: 'POST' });
+          // Then, fetch the updated mood data
+          await fetchMoodData();
+      } catch (e) {
+          setError("Failed to refresh data.");
+          console.error(e);
+      } finally {
+          setIsProcessing(false);
+      }
+  }
+
+  useEffect(() => {
     fetchMoodData();
   }, []);
 
@@ -82,21 +99,21 @@ const WellnessTracker: React.FC = () => {
       {
         label: 'Mood',
         data: moodData.map(entry => mapMoodToChartValue(entry.mood)),
-        borderColor: '#a78bfa',
+        borderColor: '#8e44ad',
         backgroundColor: (context: ScriptableContext<'line'>) => {
           const ctx = context.chart.ctx;
           const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-          gradient.addColorStop(0, 'rgba(167, 139, 250, 0.3)');
-          gradient.addColorStop(1, 'rgba(167, 139, 250, 0)');
+          gradient.addColorStop(0, 'rgba(142, 68, 173, 0.3)');
+          gradient.addColorStop(1, 'rgba(142, 68, 173, 0)');
           return gradient;
         },
         fill: true,
         tension: 0.4,
-        pointRadius: 6,
+        pointRadius: 5,
         pointBackgroundColor: '#fff',
-        pointBorderColor: '#a78bfa',
-        pointHoverRadius: 8,
-        pointHoverBackgroundColor: '#a78bfa',
+        pointBorderColor: '#8e44ad',
+        pointHoverRadius: 7,
+        pointHoverBackgroundColor: '#8e44ad',
         pointHoverBorderColor: '#fff',
       },
     ],
@@ -110,12 +127,7 @@ const WellnessTracker: React.FC = () => {
       easing: 'easeInOutQuart',
     },
     layout: {
-      padding: {
-        top: 30,
-        bottom: 30,
-        left: 10,
-        right: 10,
-      }
+      padding: 20
     },
     plugins: {
       legend: {
@@ -126,7 +138,7 @@ const WellnessTracker: React.FC = () => {
       },
       tooltip: {
         enabled: true,
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        backgroundColor: '#20203a',
         titleFont: {
             family: "'Inter', sans-serif",
             size: 14,
@@ -163,21 +175,19 @@ const WellnessTracker: React.FC = () => {
             if (numValue === 0) return 'Sad';
             return '';
           },
-          color: '#b0b0d0',
+          color: '#c0c0c0',
           font: {
             family: "'Inter', sans-serif",
             size: 12,
           },
         },
         grid: {
-          color: 'rgba(255, 255, 255, 0.1)',
+          color: '#33334d',
         },
       },
       x: {
-        max: 10,
-        offset: false,
         ticks: {
-          color: '#b0b0d0',
+          color: '#c0c0c0',
           font: {
             family: "'Inter', sans-serif",
             size: 12,
@@ -195,6 +205,13 @@ const WellnessTracker: React.FC = () => {
       <div className="wellness-tracker-header">
         <h2>Wellness Tracker</h2>
         <p>Visualize your mood trends and reflect on your emotional journey.</p>
+        <button className="refresh-button" onClick={handleRefresh} disabled={isProcessing}>
+            {isProcessing ? (
+                <><div className="spinner-small"></div> Processing...</>
+            ) : (
+                'Refresh Graph'
+            )}
+        </button>
       </div>
       <div className="wellness-graph-container">
         {isLoading ? (

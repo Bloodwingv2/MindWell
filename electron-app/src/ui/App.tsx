@@ -325,56 +325,58 @@ function App() {
               <MoodSummarizer moodEntries={moodEntries} setMoodEntries={setMoodEntries} />
             ) : selectedTracker.id === 'wellness-tracker' ? (
               <WellnessTracker />
+            ) : selectedTracker.id === 'chat-assistant' ? (
+                <div className="mental-health-chat-section">
+                    <div className="chat-header">
+                        <h3>MindWell Assistant</h3>
+                        <p>Your friendly and supportive AI companion.</p>
+                    </div>
+                    <div className="chats">
+                    {messages.map((message, index) => (
+                        <motion.div
+                        key={index}
+                        className={`message-container ${message.role}`}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3 }}
+                        >
+                        <div className="message-content">
+                            <p>
+                            {message.displayedContent || message.content}
+                            {message.role === 'assistant' && message.loading && (
+                                <div className="loading-dots">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                                </div>
+                            )}
+                            </p>
+                        </div>
+                        </motion.div>
+                    ))}
+                    <div ref={messagesEndRef} />
+                    </div>
+                    <div className="chatfooter">
+                    <motion.div
+                        className="inputbox"
+                        initial={{ scale: 0.98, opacity: 0.8 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                    >
+                        <input type="text" placeholder='Ask anything...' value={input} onChange={(e) => { setInput(e.target.value) }} onKeyDown={handleKeyDown} disabled={isLoadingResponse} />
+                        <motion.button
+                        className="send"
+                        onClick={askGemma}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        disabled={isLoadingResponse}
+                        ><img src={sentbtn} alt="" className="sendbtnimg"></img></motion.button>
+                    </motion.div>
+                    <p className="disclaimer">MindWell is an AI assistant and not a substitute for professional medical advice.</p>
+                    </div>
+                </div>
             ) : (
               <div className="tracker-text" dangerouslySetInnerHTML={{ __html: selectedTracker.content }} />
-            )}
-            {selectedTracker.id === 'chat-assistant' && (
-              <div className="mental-health-chat-section">
-                <h3>Chat with MindWell Assistant:</h3>
-                <div className="chats">
-                  {messages.map((message, index) => (
-                    <motion.div
-                      key={index}
-                      className={`message-container ${message.role}`}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <div className="message-content">
-                        <p className="txt">
-                          {message.displayedContent || message.content}
-                          {message.role === 'assistant' && message.loading && (
-                            <div className="loading-dots">
-                              <span></span>
-                              <span></span>
-                              <span></span>
-                            </div>
-                          )}
-                        </p>
-                      </div>
-                    </motion.div>
-                  ))}
-                  <div ref={messagesEndRef} /> {/* Add this for auto-scroll */}
-                </div>
-                <div className="chatfooter">
-                  <motion.div
-                    className="inputbox"
-                    initial={{ scale: 0.95, opacity: 0.8 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                  >
-                    <input type="text" placeholder='Ask anything about mental health...' value={input} onChange={(e) => { setInput(e.target.value) }} onKeyDown={handleKeyDown} disabled={isLoadingResponse} />
-                    <motion.button
-                      className="send"
-                      onClick={askGemma}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      disabled={isLoadingResponse}
-                    ><img src={sentbtn} alt="" className="sendbtnimg"></img></motion.button>
-                  </motion.div>
-                  <p className="disclaimer">MindWell Assistant provides general information and support. It is not a substitute for professional medical advice, diagnosis, or treatment.</p>
-                </div>
-              </div>
             )}
           </div>
         ) : (
