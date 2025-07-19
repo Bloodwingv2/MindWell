@@ -9,6 +9,9 @@ import settingsicon from '../assets/settingsicon.svg'
 import voicemode from '../assets/voicemodeicon.svg'
 import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion';
+import { Terminal } from '@xterm/xterm';
+import { FitAddon } from '@xterm/addon-fit';
+import '@xterm/xterm/css/xterm.css';
 
 
 type Message = {
@@ -105,6 +108,46 @@ const affirmations: string[] = [
   "I trust in my journey and my growth."
 ];
 
+interface TerminalComponentProps {
+  terminalRef: React.MutableRefObject<Terminal | null>;
+  fitAddonRef: React.MutableRefObject<FitAddon | null>;
+  onTerminalReady: () => void; // Callback for when terminal is ready
+}
+
+const TerminalComponent: React.FC<TerminalComponentProps> = ({ terminalRef, fitAddonRef, onTerminalReady }) => {
+  useEffect(() => {
+    const term = new Terminal({
+      convertEol: true,
+      fontFamily: `'Fira Code', monospace`,
+      fontSize: 15,
+      fontWeight: 'normal',
+      theme: {
+        background: '#282c34',
+        foreground: '#abb2bf',
+      },
+    });
+
+    const fitAddon = new FitAddon();
+    term.loadAddon(fitAddon);
+    
+    const terminalContainer = document.getElementById('terminal-container');
+    if (terminalContainer) {
+      term.open(terminalContainer);
+      fitAddon.fit();
+      onTerminalReady(); // Call the callback when terminal is ready
+    }
+
+    terminalRef.current = term;
+    fitAddonRef.current = fitAddon;
+
+    return () => {
+      term.dispose();
+    };
+  }, []);
+
+  return <div id="terminal-container" style={{ width: '100%', height: '100%' }} />;
+};
+
 function App() {
   const [messages, setMessages] = useState<Message[]>([]); // All Chat messages
   const [input, setInput] = useState(''); // Initialize input state as an empty string
@@ -121,8 +164,13 @@ function App() {
   const [moodEntries, setMoodEntries] = useState<{ mood: string; date: string }[]>([]);
   const [isLoadingResponse, setIsLoadingResponse] = useState(false); // New loading state
   const [selectedLanguage, setSelectedLanguage] = useState('en'); // Default to English
+  const [showTerminal, setShowTerminal] = useState(false);
+  const [isTerminalReady, setIsTerminalReady] = useState(false); // New state for terminal readiness
+  const [pendingTerminalMessages, setPendingTerminalMessages] = useState<string[]>([]); // New state for pending messages
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null); // Ref to scroll to the bottom of chat
+  const terminalRef = useRef<Terminal | null>(null);
+  const fitAddonRef = useRef<FitAddon | null>(null);
 
   useEffect(() => {
     localStorage.setItem('visitedTrackers', JSON.stringify(visitedTrackers));
@@ -132,7 +180,11 @@ function App() {
     localStorage.setItem('completedTrackers', JSON.stringify(completedTrackers));
   }, [completedTrackers]);
 
-  
+  useEffect(() => {
+    if (selectedTracker?.id !== 'chat-assistant') {
+      setShowTerminal(false);
+    }
+  }, [selectedTracker]);
 
   useEffect(() => {
     // Set a random affirmation on component mount and every 20 seconds
@@ -147,17 +199,54 @@ function App() {
     return () => clearInterval(intervalId); // Cleanup on unmount
   }, []);
 
-  
+  useEffect(() => {
+    if (isTerminalReady && pendingTerminalMessages.length > 0) {
+      pendingTerminalMessages.forEach(msg => {
+        if (terminalRef.current) {
+          if (msg.startsWith('\r')) {
+            terminalRef.current.write(msg);
+          } else {
+            terminalRef.current.writeln(msg);
+          }
+        }
+      });
+      setPendingTerminalMessages([]);
+    }
+  }, [isTerminalReady, pendingTerminalMessages]);
 
-  
-
-  
+  const handleTerminalReady = () => {
+    setIsTerminalReady(true);
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({behavior : 'smooth'})
   }
 
   useEffect(scrollToBottom, [messages]); // scroll to bottom whenever messages change
+
+  // Helper function to write to terminal
+  const writeToTerminal = (message: string, isWrite: boolean = false) => {
+    if (isTerminalReady && terminalRef.current) {
+      if (isWrite) {
+        terminalRef.current.write(message);
+      } else {
+        terminalRef.current.writeln(message);
+      }
+    } else {
+      setPendingTerminalMessages(prev => [...prev, message]);
+    }
+  };
+
+  // Helper function to check if a chunk is terminal output
+  const isTerminalOutput = (chunk: string): boolean => {
+    return chunk.includes("Model not found locally") || 
+           chunk.includes("pulling manifest") || 
+           chunk.includes("Download") ||
+           chunk.includes("verifying sha256") ||
+           chunk.includes("writing manifest") ||
+           chunk.includes("removing any unused layers") ||
+           chunk.includes("success");
+  };
 
   // Called When Send Button is clicked
   const askGemma = async () => { // Renamed sendMessage to askGemma
@@ -187,6 +276,10 @@ function App() {
     setInput('');
     setIsLoadingResponse(true); // Set loading to true when API call starts
 
+    let modelWasDownloaded = false;
+    let isModelDownloadPhase = false;
+    let downloadCompleted = false;
+    
     try {
       const response = await fetch('http://localhost:8000/stream', {
         method: 'POST',
@@ -206,6 +299,7 @@ function App() {
       if (!reader) throw new Error('No response body');
 
       let botReply = '';
+      let buffer = '';
 
       while (true) {
         const { done, value } = await reader.read();
@@ -214,33 +308,137 @@ function App() {
         }
 
         const chunk = decoder.decode(value, { stream: true });
+        buffer += chunk;
         
-        botReply += chunk;
-
-        // Update the displayed content character by character
-        for (let i = 0; i < chunk.length; i++) {
-          await new Promise(resolve => setTimeout(resolve, 20)); // Adjust typing speed for smoother animation
-          setMessages(prev => {
-            const updated = [...prev];
-            // Use the captured assistantMessageIndex
-            updated[assistantMessageIndex] = {
-              ...updated[assistantMessageIndex],
-              displayedContent: (updated[assistantMessageIndex].displayedContent || '') + chunk[i],
-              loading: false, // Set loading to false once content starts streaming
-            };
-            return updated;
-          });
+        // Try to parse complete JSON objects from the buffer
+        let lines = buffer.split('\n');
+        buffer = lines.pop() || ''; // Keep incomplete line in buffer
+        
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          
+          try {
+            const jsonResponse = JSON.parse(line);
+            
+            // Handle model download status messages
+            if (jsonResponse.status) {
+              if (jsonResponse.status.includes("Model not found locally") || 
+                  jsonResponse.status.includes("pulling manifest")) {
+                isModelDownloadPhase = true;
+                modelWasDownloaded = true;
+                setShowTerminal(true);
+                writeToTerminal(jsonResponse.status);
+              } else if (jsonResponse.status.includes("success")) {
+                downloadCompleted = true;
+                isModelDownloadPhase = false;
+                writeToTerminal(jsonResponse.status);
+                writeToTerminal('\nModel download completed. Returning to chat...');
+                
+                // Close terminal after showing completion message
+                setTimeout(() => {
+                  setShowTerminal(false);
+                  setIsTerminalReady(false); // Reset terminal ready state
+                  // Refresh the page to ensure the system uses the newly downloaded model
+                  window.location.reload();
+                }, 3000); // Increased delay to 3 seconds to ensure user sees the completion message
+                
+              } else if (isModelDownloadPhase) {
+                writeToTerminal(jsonResponse.status);
+              }
+            }
+            
+            // Handle download progress
+            if (jsonResponse.digest && isModelDownloadPhase) {
+              const progressMessage = `\r${jsonResponse.digest}: ${(jsonResponse.completed / jsonResponse.total * 100).toFixed(2)}%`;
+              writeToTerminal(progressMessage, true);
+            }
+            
+          } catch (e) {
+            // Handle non-JSON chunks
+            const cleanChunk = line.trim();
+            if (!cleanChunk) continue;
+            
+            // Check if this is terminal output
+            if (isTerminalOutput(cleanChunk)) {
+              if (cleanChunk.includes("Model not found locally")) {
+                isModelDownloadPhase = true;
+                modelWasDownloaded = true;
+                setShowTerminal(true);
+              }
+              if (isModelDownloadPhase) {
+                writeToTerminal(cleanChunk);
+                
+                // Check for success in non-JSON format
+                if (cleanChunk.includes("success")) {
+                  downloadCompleted = true;
+                  isModelDownloadPhase = false;
+                  writeToTerminal('\nModel download completed. Returning to chat...');
+                  
+                  // Close terminal after showing completion message
+                  setTimeout(() => {
+                    setShowTerminal(false);
+                    setIsTerminalReady(false); // Reset terminal ready state
+                    // Refresh the page to ensure the system uses the newly downloaded model
+                    window.location.reload();
+                  }, 3000);
+                }
+              }
+            } else {
+              // This is regular chat content - only process if not in download phase or download is completed
+              if (!isModelDownloadPhase || downloadCompleted) {
+                botReply += cleanChunk;
+                
+                // Update the displayed content character by character
+                for (let i = 0; i < cleanChunk.length; i++) {
+                  await new Promise(resolve => setTimeout(resolve, 20));
+                  setMessages(prev => {
+                    const updated = [...prev];
+                    updated[assistantMessageIndex] = {
+                      ...updated[assistantMessageIndex],
+                      displayedContent: (updated[assistantMessageIndex].displayedContent || '') + cleanChunk[i],
+                      loading: false,
+                    };
+                    return updated;
+                  });
+                }
+              }
+            }
+          }
         }
       }
-      // After successful response from Gemma, mark tracker as completed
-      // After the streaming is complete, trim the final displayedContent
+      
+      // Handle any remaining buffer content
+      if (buffer.trim() && !isTerminalOutput(buffer.trim()) && (!isModelDownloadPhase || downloadCompleted)) {
+        botReply += buffer.trim();
+        setMessages(prev => {
+          const updated = [...prev];
+          updated[assistantMessageIndex] = {
+            ...updated[assistantMessageIndex],
+            displayedContent: (updated[assistantMessageIndex].displayedContent || '') + buffer.trim(),
+            loading: false,
+          };
+          return updated;
+        });
+      }
+
+      // Final cleanup and state updates - only if download wasn't successful
+      if (modelWasDownloaded && !downloadCompleted) {
+        writeToTerminal('\nModel download process completed. Returning to chat...');
+        // Close terminal after showing completion message
+        setTimeout(() => {
+          setShowTerminal(false);
+          setIsTerminalReady(false); // Reset terminal ready state
+        }, 3000);
+      }
+
+      // Set final message content
       setMessages(prev => {
         const updated = [...prev];
         updated[assistantMessageIndex] = {
           ...updated[assistantMessageIndex],
-          content: botReply.trimEnd(), // Set the final content, trimmed
-          displayedContent: (updated[assistantMessageIndex].displayedContent || '').trimEnd(), // Trim the displayed content
-          loading: false, // Ensure loading is false when streaming is complete
+          content: botReply.trimEnd() || (modelWasDownloaded && !botReply.trim() ? 'Model downloaded successfully. Please try your question again.' : ''),
+          displayedContent: (updated[assistantMessageIndex].displayedContent || '').trimEnd() || (modelWasDownloaded && !botReply.trim() ? 'Model downloaded successfully. Please try your question again.' : ''),
+          loading: false,
         };
         return updated;
       });
@@ -249,6 +447,7 @@ function App() {
       if (selectedTracker && !completedTrackers.includes(selectedTracker.id)) {
         setCompletedTrackers(prev => [...prev, selectedTracker.id]);
       }
+      
     } catch (error) {
       console.error('Streaming error:', error);
       setMessages(prev => {
@@ -257,8 +456,9 @@ function App() {
         if (lastMessageIndex >= 0 && updated[lastMessageIndex].role === 'assistant') {
           updated[lastMessageIndex] = {
             ...updated[lastMessageIndex],
-            content: updated[lastMessageIndex].content + '⚠️ Error connecting to backend.',
-            displayedContent: updated[lastMessageIndex].displayedContent + '⚠️ Error connecting to backend.',
+            content: '⚠️ Error connecting to backend.',
+            displayedContent: '⚠️ Error connecting to backend.',
+            loading: false,
           };
         } else {
           updated.push({
@@ -271,7 +471,17 @@ function App() {
         return updated;
       });
     } finally {
-      setIsLoadingResponse(false); // Set loading to false after API call completes (success or error)
+      setIsLoadingResponse(false);
+      
+      // Ensure terminal closes if model was downloaded but no success message was caught
+      if (modelWasDownloaded && !downloadCompleted) {
+        setTimeout(() => {
+          setShowTerminal(false);
+          setIsTerminalReady(false);
+          // Refresh the page to ensure the system uses the newly downloaded model
+          window.location.reload();
+        }, 5000); // Fallback timeout
+      }
     }
   };
   
@@ -321,7 +531,9 @@ function App() {
         </div>
       </div>
       <div className="main">
-        {selectedTracker ? (
+        {showTerminal ? (
+          <TerminalComponent terminalRef={terminalRef} fitAddonRef={fitAddonRef} onTerminalReady={handleTerminalReady} />
+        ) : selectedTracker ? (
           <div className="tracker-content-area">
             {selectedTracker.id === 'mood-summarizer' ? (
               <MoodSummarizer moodEntries={moodEntries} setMoodEntries={setMoodEntries} />

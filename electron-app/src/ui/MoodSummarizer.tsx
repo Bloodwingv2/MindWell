@@ -2,7 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import './MoodSummarizer.css';
 
-const MoodSummarizer: React.FC = () => {
+interface MoodSummarizerProps {
+  moodEntries: { mood: string; date: string }[];
+  setMoodEntries: React.Dispatch<React.SetStateAction<{ mood: string; date: string }[]>>;
+}
+
+const MoodSummarizer: React.FC<MoodSummarizerProps> = ({ moodEntries, setMoodEntries }) => {
   const [summary, setSummary] = useState('');
   const [tips, setTips] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);

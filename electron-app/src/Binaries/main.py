@@ -16,6 +16,8 @@ import logging
 # Import subprocess for model download
 import subprocess
 import os
+import re
+
 
 # Mood imports to log for graphs
 import json
@@ -139,6 +141,51 @@ Your response:
         logging.error(f"Error during positivity analysis: {str(e)}")
         return False
 
+
+async def download_model_background(model_name, handler):
+    
+    process = await asyncio.create_subprocess_exec(
+        "ollama", "pull", model_name,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.STDOUT
+    )
+
+    progress_pattern = re.compile(r"(\w+):\s+(\d+)%|(\w+)\s+([\d.]+)\s+(\w+)/([\d.]+)\s+(\w+)\s+\((.+)\)")
+
+    while True:
+        line = await process.stdout.readline()
+        if not line:
+            break
+        decoded = line.decode("utf-8", errors="replace").strip()
+        
+        match = progress_pattern.match(decoded)
+        if match:
+            if match.group(1) and match.group(2):  # e.g., "downloading: 10%"
+                status = match.group(1)
+                percentage = match.group(2)
+                formatted_output = f"Model download {status}: {percentage}%"
+            elif match.group(3) and match.group(4) and match.group(5) and match.group(6) and match.group(7) and match.group(8): # e.g., "verifying 1.2 GB/1.2 GB (overall 100%)"
+                status = match.group(3)
+                downloaded_size = match.group(4)
+                downloaded_unit = match.group(5)
+                total_size = match.group(6)
+                total_unit = match.group(7)
+                overall_progress = match.group(8)
+                formatted_output = f"Model {status}: {downloaded_size} {downloaded_unit}/{total_size} {total_unit} ({overall_progress})"
+            else:
+                formatted_output = decoded # Fallback to raw if no match
+        else:
+            formatted_output = decoded # Fallback to raw if no match
+
+        await handler.queue.put(formatted_output + "\n") # Add newline for better display
+
+                
+async def check_model():
+    model_check = subprocess.run(['ollama', 'list'], capture_output=True, text=True)
+    return model_check
+
+
+
 async def is_valid(question: str, model: OllamaLLM):
     valid_prompt = ChatPromptTemplate.from_template("""
     You are a memory filter AI.
@@ -229,10 +276,18 @@ async def query_stream(request: Request):
             await save_to_buffer(parsed.question, handler.buffer)
                 
         except Exception as e:
+            # Main Code for Calling async functions
             logging.error(f"Chain invoke error: {str(e)}")
-            await handler.queue.put(f"Error: {str(e)}")
-        finally:
-            await handler.queue.put("[END]")
+
+            # Check if model exists locally
+            model_check = await check_model() # call async function
+
+            if parsed.model not in model_check.stdout:
+                # Call CMD to pull the required moded
+                await handler.queue.put("Model not found locally. Downloading the model, please wait... (Check the command window for progress)")
+                asyncio.create_task(download_model_background(parsed.model, handler))
+            else:
+                await handler.queue.put(f"Error: {str(e)}")
 
     asyncio.create_task(run_chain_and_save())
     return StreamingResponse(handler.token_stream(), media_type="text/plain")
@@ -281,7 +336,7 @@ async def process_conversations():
 
 @app.get("/models")
 async def get_available_models():
-    return {"available_models": ["llama3.2", "mistral", "gemma2:2b"]}
+    return {"available_models": ["gemma3n:e2b", "mistral", "gemma2:2b"]}
     
 @app.post("/mood")
 async def post_mood(data: MoodRequest):
