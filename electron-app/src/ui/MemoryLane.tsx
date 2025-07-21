@@ -3,6 +3,7 @@ import './MemoryLane.css';
 
 interface Memory {
   id: number;
+  title: string;
   memory: string;
   timestamp: string;
 }
@@ -60,7 +61,7 @@ const MemoryLane: React.FC = () => {
       <div className="memories-grid">
         {memories.map((memory) => (
           <div key={memory.id} className="memory-card" onClick={() => handleCardClick(memory)}>
-            <h3>Memory #{memory.id}</h3>
+            <h3>{memory.title}</h3>
             <p className="memory-date">{new Date(memory.timestamp).toLocaleDateString()}</p>
             <p>{memory.memory}</p>
           </div>

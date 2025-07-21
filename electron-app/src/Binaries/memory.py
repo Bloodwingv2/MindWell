@@ -31,6 +31,7 @@ def init_db():
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS special_memories (
             id INTEGER PRIMARY KEY,
+            title TEXT NOT NULL,
             memory TEXT NOT NULL UNIQUE,
             timestamp TEXT NOT NULL
         )
@@ -67,7 +68,7 @@ def load_memories_special(table="special_memories"):
     conn = sqlite3.connect(MEMORY_DB)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
-    cursor.execute(f"SELECT memory, timestamp FROM {table} ORDER BY timestamp DESC")
+    cursor.execute(f"SELECT title, memory, timestamp FROM {table} ORDER BY timestamp DESC")
     memories = [dict(row) for row in cursor.fetchall()]
     conn.close()
     return memories
@@ -189,14 +190,14 @@ def add_memory_core(memory_text, table="core_memories"):
         conn.close()
     return was_added
 
-def add_special_memory_core(memory_text, table="special_memories"):
+def add_special_memory_core(memory_text, title, table="special_memories"):
     """Adds a new, unique memory to the specified table."""
     conn = sqlite3.connect(MEMORY_DB)
     cursor = conn.cursor()
     timestamp = datetime.now().isoformat()
     was_added = False
     try:
-        cursor.execute(f"INSERT OR IGNORE INTO {table} (memory, timestamp) VALUES (?, ?)", (memory_text, timestamp))
+        cursor.execute(f"INSERT OR IGNORE INTO {table} (title, memory, timestamp) VALUES (?, ?, ?)", (title, memory_text, timestamp))
         conn.commit()
         was_added = cursor.rowcount > 0
     except sqlite3.IntegrityError:

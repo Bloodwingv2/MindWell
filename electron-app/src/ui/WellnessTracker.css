@@ -1,31 +1,77 @@
+* {
+    box-sizing: border-box;
+}
+
+html {
+    overflow-x: hidden;
+    overflow-y: auto;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden; /* Remove body scrollbar completely */
+}
+
+/* Custom scrollbar styles for webkit browsers */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #2a2a4a;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #8e44ad;
+    border-radius: 10px;
+    border: 2px solid #2a2a4a;
+}
+
+/* Firefox scrollbar */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #8e44ad #2a2a4a;
+}
+
 .wellness-tracker-container {
-  padding: 20px;
-  background: #1a1a2e;
-  color: #e0e0e0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-height: 100vh;
-  box-sizing: border-box;
-  font-family: 'Inter', sans-serif;
+    padding: 20px;
+    background: #1a1a2e;
+    color: #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100vh; /* Use viewport height instead of min-height */
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+    overflow-y: auto; /* Make only the container scrollable */
+    overflow-x: hidden;
 }
 
 .wellness-tracker-header {
-  text-align: center;
-  margin-bottom: 30px;
+    text-align: center;
+    margin-bottom: 30px;
+    flex-shrink: 0; /* Prevent header from shrinking */
 }
 
 .wellness-tracker-header h2 {
-  font-size: 2.2rem;
-  font-weight: 700;
-  color: #ffffff;
-  margin-bottom: 10px;
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 10px;
+    margin-top: 0;
 }
 
 .wellness-tracker-header p {
-  font-size: 1.1rem;
-  color: #c0c0c0;
-  max-width: 600px;
+    font-size: 1.1rem;
+    color: #c0c0c0;
+    max-width: 600px;
+    margin: 0 auto;
 }
 
 .refresh-button {
@@ -44,6 +90,10 @@
     gap: 8px;
 }
 
+.refresh-button:hover {
+    background: #9c5bb8;
+}
+
 .refresh-button:disabled {
     background: #555;
     cursor: not-allowed;
@@ -59,26 +109,30 @@
 }
 
 .wellness-graph-container {
-  width: 100%;
-  max-width: 950px;
-  height: 400px;
-  background-color: #20203a;
-  padding: 25px;
-  border-radius: 12px;
-  border: 1px solid #33334d;
-  position: relative;
+    width: 100%;
+    max-width: 1050px;
+    height: 450px;
+    background-color: #20203a;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid #33334d;
+    position: relative;
+    flex-shrink: 0; /* Prevent graph container from shrinking */
+    margin-bottom: 10px;
 }
 
 .wellness-graph-container p {
     color: #c0c0c0;
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100%;
+    margin: 0;
 }
 
-.loading-container, .error-container {
+.loading-container,
+.error-container {
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -98,6 +152,10 @@
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 }

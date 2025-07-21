@@ -40,7 +40,6 @@ const MoodSummarizer: React.FC<MoodSummarizerProps> = ({ moodEntries, setMoodEnt
     setIsProcessing(true);
     try {
       await fetch('http://localhost:8000/process_conversations', { method: 'POST' });
-      // After processing, refresh the summary data
       fetchSummary();
     } catch (error) {
       console.error('Error processing conversations:', error);
@@ -54,50 +53,59 @@ const MoodSummarizer: React.FC<MoodSummarizerProps> = ({ moodEntries, setMoodEnt
   }, []);
 
   return (
-    <motion.div
-      className="mood-summarizer-content"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-    >
-      <div className="mood-summary-section">
-        <div className="header-section">
-            <h1>Mood Summary</h1>
-            <motion.button 
-              className="process-button" 
-              onClick={processConversations} 
-              disabled={isProcessing}
-              whileHover={{ scale: 1.05 }} 
-              whileTap={{ scale: 0.95 }}
-            >
-              {isProcessing ? 'Processing...' : 'Analyze Conversations'}
-            </motion.button>
-        </div>
-        {isLoading ? (
+    <div className="mood-summarizer-container">
+      <div className="mood-summarizer-header">
+        <h1>Mood Summary</h1>
+        <p>Get AI-driven insights into your emotional well-being.</p>
+      </div>
+      <div style={{ textAlign: 'center' }}>
+        <motion.button 
+          className="process-button" 
+          onClick={processConversations} 
+          disabled={isProcessing}
+          whileHover={{ scale: 1.05 }} 
+          whileTap={{ scale: 0.95 }}
+        >
+          {isProcessing ? 'Processing...' : 'Analyze Conversations'}
+        </motion.button>
+      </div>
+      {isLoading ? (
+        <div className="loading-container">
           <div className="loading-dots">
             <span></span>
             <span></span>
             <span></span>
           </div>
-        ) : (
-          <>
-            <div className="summary-placeholder">
-              <p>{summary}</p>
-            </div>
-            {tips.length > 0 && (
-              <div className="tips-section">
-                <h4>Personalized Tips</h4>
-                <ul>
-                  {tips.map((tip, index) => (
-                    <li key={index}>{tip}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </>
-        )}
-      </div>
-    </motion.div>
+        </div>
+      ) : (
+        <div className="mood-summarizer-content">
+          <motion.div 
+            className="summary-card"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            <h2>Today's Summary</h2>
+            <p>{summary}</p>
+          </motion.div>
+          {tips.length > 0 && (
+            <motion.div 
+              className="tips-card"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+            >
+              <h2>Personalized Tips</h2>
+              <ul>
+                {tips.map((tip, index) => (
+                  <li key={index}>{tip}</li>
+                ))}
+              </ul>
+            </motion.div>
+          )}
+        </div>
+      )}
+    </div>
   );
 };
 

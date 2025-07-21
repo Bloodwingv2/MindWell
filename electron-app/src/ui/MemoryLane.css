@@ -1,41 +1,62 @@
 .memory-lane-container {
-  padding: 40px;
+  padding: 0 0 30px 0;
   background: #1a1a2e;
   color: #e0e0e0;
   overflow-y: auto;
   height: calc(100vh - 80px);
+  scrollbar-width: thin;
+  scrollbar-color: #8e44ad #2a2a4a;
+}
+
+.memory-lane-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.memory-lane-container::-webkit-scrollbar-track {
+  background: #2a2a4a;
+  border-radius: 10px;
+}
+
+.memory-lane-container::-webkit-scrollbar-thumb {
+  background-color: #8e44ad;
+  border-radius: 10px;
+  border: 2px solid #2a2a4a;
 }
 
 .memory-lane-header {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 50px;
 }
 
 .memory-lane-header h2 {
-  font-size: 3em;
+  font-size: 1.8rem;
   font-weight: 700;
   color: #8e44ad;
+  margin: 0 30px 0px 0;
 }
 
 .memory-lane-header p {
-  font-size: 1.2em;
+  font-size: 1em;
   color: #c0c0c0;
+  margin: 7px 14px 0px 0;
 }
 
 .memories-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
   gap: 30px;
 }
 
 .memory-card {
   background: #20203a;
   border-radius: 15px;
-  padding: 25px;
+  padding: 20px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   cursor: pointer;
-  border: 1px solid #33334d;
+  border: 5px solid #33334d;
+  margin-right: 30px;
+  margin-bottom: 20px;
 }
 
 .memory-card:hover {

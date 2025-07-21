@@ -24,6 +24,10 @@ import json
 from datetime import datetime
 from memory import add_special_memory_core, load_memories_special, get_relevant_special_memories_core, get_relevant_memories_general, get_relevant_memories_core, add_memory_core, add_memory_general, load_memories_core, load_memories_general
 
+# Import string formatters
+from titlecase import titlecase
+
+
 # --- Configuration ---
 CONVERSATION_BUFFER_FILE = "conversation_buffer.json"
 
@@ -126,9 +130,8 @@ Your response:
         logging.error(f"Error during mood analysis: {str(e)}")
 
 async def is_positive(question: str, model: OllamaLLM):
-    positive_template = """
-Analyze the user's message and determine if it's a special positive memory worth remembering.
-Respond with 'special' if it is, 'yes' if it is just a positive memory and 'no' if none of the above. Do not provide any other text or explanation.
+    positive_template = """Analyze the user's message and determine if it's a special positive memory worth remembering.
+Respond with 'special: <title>' if it is, 'yes' if it is just a positive memory and 'no' if none of the above. Do not provide any other text or explanation.
 User message: {question}
 Your response:
 """
@@ -323,8 +326,10 @@ async def process_conversations():
             await analyze_and_log_mood(question, analysis_model)
             result = await is_positive(question, analysis_model)
             
-            if result == "special":
-                add_special_memory_core(question)
+            if result.startswith("special:"):
+                title = result.split(":", 1)[1].strip()
+                title = title.title()
+                add_special_memory_core(question, title)
             elif result == "yes":
                 add_memory_core(question)
             
@@ -351,12 +356,12 @@ async def get_available_models():
     return {"available_models": ["gemma3n:e2b", "mistral", "gemma2:2b"]}
     
 @app.post("/mood")
-async def post_mood(data: MoodRequest):
+async def post_mood_data_json(data: MoodRequest):
     await log_mood(data.graph)
     return {"mood": data.graph}
 
 @app.get("/mood")
-async def get_mood():
+async def get_mood_graph_value():
     try:
         with open("mood_log.json", "r") as f:
             return JSONResponse(content=json.load(f))
@@ -376,7 +381,7 @@ async def get_mood_memory():
     return JSONResponse(content=load_memories_general())
 
 @app.get("/mood_summary")
-async def get_mood_progression_endpoint():
+async def get_mood_summary():
     today_str = datetime.now().strftime("%Y-%m-%d")
     today_filename = f"today_summary_{today_str}.json"
     try:

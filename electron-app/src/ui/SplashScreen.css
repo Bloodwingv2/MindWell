@@ -37,7 +37,7 @@
   
   overflow: hidden; /* Hide overflowing text */
   white-space: nowrap; /* Keep text on a single line */
-  border-right: 0.15em solid orange; /* Blinking cursor */
+  border-right: 0.15em solid rgb(4, 0, 255); /* Blinking cursor */
   padding-right: 0.15em; /* Space for cursor */
   box-sizing: border-box; /* Include padding in width calculation */
 }
@@ -79,13 +79,13 @@
     border-color: transparent;
   }
   50% {
-    border-color: orange;
+    border-color: rgb(4, 0, 255);
   }
 }
 
 .blinking-caret {
   display: inline-block;
-  border-right: 2px solid orange;
+  border-right: 2px solid rgb(4, 0, 255);
   animation: blink-caret 0.7s step-end infinite;
   animation-delay: 1.7s; /* Start blinking after typing effect */
   height: 1em;
