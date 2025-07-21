@@ -1,12 +1,18 @@
 import './App.css'
-import WellnessTracker from './WellnessTracker'; // Import WellnessTracker
-import MoodSummarizer from './MoodSummarizer'; // Import MoodSummarizer
+import WellnessTracker from './WellnessTracker';
+import MoodSummarizer from './MoodSummarizer';
+import MemoryLane from './MemoryLane';
+import Settings from './settings'; // Import Settings
 
 import ISAClogo from '../assets/MindWell.png'
 import sentbtn from '../assets/send-svgrepo-com.svg'
-import homeicon from '../assets/homeicon.svg'
-import settingsicon from '../assets/settingsicon.svg'
-import voicemode from '../assets/voicemodeicon.svg'
+import homeicon from '../assets/home-button.png'
+import settingsicon from '../assets/setting.png'
+import chaticon from '../assets/MindWell.png';
+import moodicon from '../assets/dial.png';
+import memoryicon from '../assets/memory-recall.png';
+import wellnessicon from '../assets/growth.png';
+
 import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion';
 import { Terminal } from '@xterm/xterm';
@@ -15,18 +21,19 @@ import '@xterm/xterm/css/xterm.css';
 
 
 type Message = {
-  id: string; // Add unique ID
+  id: string; 
   role: 'user' | 'assistant';
   content: string;
-  displayedContent?: string; // For character-by-character display
-  loading?: boolean; // Add loading state for assistant messages
+  displayedContent?: string; 
+  loading?: boolean; 
 }
 
 interface Tracker {
   id: string;
   title: string;
   description: string;
-  content: string; // This will hold the tracker's UI content
+  content: string; 
+  icon: string;
 }
 
 const trackers: Tracker[] = [
@@ -35,64 +42,29 @@ const trackers: Tracker[] = [
     title: 'Chat with MindWell',
     description: 'Chat with the MindWell AI assistant.',
     content: '',
+    icon: chaticon,
   },
   {
     id: 'mood-summarizer',
     title: 'Mood Summarizer',
     description: 'Get AI-driven insights on your mood.',
-    content: '', // Content will be rendered by the MoodSummarizer component
+    content: '', 
+    icon: moodicon,
   },
   {
-    id: 'breathing-exercises',
-    title: 'Breathing Exercises',
-    description: 'Practice calming breathing techniques.',
-    content: `
-      <h2>Breathing Exercises</h2>
-      <p>Deep breathing exercises can help calm your nervous system and reduce stress. Follow the instructions below for a guided breathing session.</p>
-      <!-- Breathing exercise UI elements will go here -->
-      <p>Inhale deeply for 4 counts, hold for 4 counts, exhale slowly for 6 counts.</p>
-      <button>Start Exercise</button>
-    `,
+    id: 'memory-lane',
+    title: 'Memory Lane',
+    description: 'Relive your positive memories.',
+    content: '',
+    icon: memoryicon,
   },
-  {
-    id: 'guided-meditations',
-    title: 'Guided Meditations',
-    description: 'Listen to guided meditation sessions for relaxation.',
-    content: `
-      <h2>Guided Meditations</h2>
-      <p>Find peace and calm with our guided meditation sessions. Choose a session below to begin.</p>
-      <div class="meditation-list">
-        <button>5-Minute Mindfulness</button>
-        <button>10-Minute Stress Relief</button>
-        <button>Sleep Meditation</button>
-      </div>
-      <!-- Audio player elements would go here -->
-    `,
-  },
-  
    {
     id: 'wellness-tracker',
     title: 'Wellness Tracker',
     description: 'Track your overall wellness over time.',
     content: ``,
-  },
-  
-  {
-    id: 'goal-setter',
-    title: 'Goal Setter',
-    description: 'Set and track your personal goals.',
-    content: `
-      <h2>Goal Setter</h2>
-      <p>Set small, achievable goals to improve your well-being.</p>
-      <div class="goal-input-section">
-        <input type="text" id="newGoalInput" placeholder="Enter a new goal" />
-        <button id="addGoalBtn">Add Goal</button>
-      </div>
-      <ul id="goalList" class="goal-list">
-        <!-- Goals will be dynamically added here -->
-      </ul>
-    `,
-  },
+    icon: wellnessicon,
+   },
 ];
 
 const affirmations: string[] = [
@@ -111,7 +83,7 @@ const affirmations: string[] = [
 interface TerminalComponentProps {
   terminalRef: React.MutableRefObject<Terminal | null>;
   fitAddonRef: React.MutableRefObject<FitAddon | null>;
-  onTerminalReady: () => void; // Callback for when terminal is ready
+  onTerminalReady: () => void; 
 }
 
 const TerminalComponent: React.FC<TerminalComponentProps> = ({ terminalRef, fitAddonRef, onTerminalReady }) => {
@@ -134,7 +106,7 @@ const TerminalComponent: React.FC<TerminalComponentProps> = ({ terminalRef, fitA
     if (terminalContainer) {
       term.open(terminalContainer);
       fitAddon.fit();
-      onTerminalReady(); // Call the callback when terminal is ready
+      onTerminalReady(); 
     }
 
     terminalRef.current = term;
@@ -149,9 +121,10 @@ const TerminalComponent: React.FC<TerminalComponentProps> = ({ terminalRef, fitA
 };
 
 function App() {
-  const [messages, setMessages] = useState<Message[]>([]); // All Chat messages
-  const [input, setInput] = useState(''); // Initialize input state as an empty string
-  const [selectedTracker, setSelectedTracker] = useState<Tracker | null>(null); // Default to null for home screen
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState('');
+  const [selectedTracker, setSelectedTracker] = useState<Tracker | null>(null);
+  const [showSettings, setShowSettings] = useState(false);
   const [visitedTrackers, setVisitedTrackers] = useState<string[]>(() => {
     const storedVisited = localStorage.getItem('visitedTrackers');
     return storedVisited ? JSON.parse(storedVisited) : [];
@@ -162,13 +135,13 @@ function App() {
   });
   const [currentAffirmation, setCurrentAffirmation] = useState('');
   const [moodEntries, setMoodEntries] = useState<{ mood: string; date: string }[]>([]);
-  const [isLoadingResponse, setIsLoadingResponse] = useState(false); // New loading state
-  const [selectedLanguage, setSelectedLanguage] = useState('en'); // Default to English
+  const [isLoadingResponse, setIsLoadingResponse] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState('en');
   const [showTerminal, setShowTerminal] = useState(false);
-  const [isTerminalReady, setIsTerminalReady] = useState(false); // New state for terminal readiness
-  const [pendingTerminalMessages, setPendingTerminalMessages] = useState<string[]>([]); // New state for pending messages
+  const [isTerminalReady, setIsTerminalReady] = useState(false);
+  const [pendingTerminalMessages, setPendingTerminalMessages] = useState<string[]>([]);
 
-  const messagesEndRef = useRef<HTMLDivElement | null>(null); // Ref to scroll to the bottom of chat
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const terminalRef = useRef<Terminal | null>(null);
   const fitAddonRef = useRef<FitAddon | null>(null);
 
@@ -187,16 +160,15 @@ function App() {
   }, [selectedTracker]);
 
   useEffect(() => {
-    // Set a random affirmation on component mount and every 20 seconds
     const setRandomAffirmation = () => {
       const randomIndex = Math.floor(Math.random() * affirmations.length);
       setCurrentAffirmation(affirmations[randomIndex]);
     };
 
-    setRandomAffirmation(); // Set initial affirmation
-    const intervalId = setInterval(setRandomAffirmation, 20000); // Change every 20 seconds
+    setRandomAffirmation();
+    const intervalId = setInterval(setRandomAffirmation, 20000);
 
-    return () => clearInterval(intervalId); // Cleanup on unmount
+    return () => clearInterval(intervalId);
   }, []);
 
   useEffect(() => {
@@ -214,6 +186,19 @@ function App() {
     }
   }, [isTerminalReady, pendingTerminalMessages]);
 
+  useEffect(() => {
+    const processMemories = async () => {
+      try {
+        await fetch('http://localhost:8000/process_conversations', { method: 'POST' });
+        console.log('Conversations processed successfully on startup.');
+      } catch (error) {
+        console.error('Error processing conversations on startup:', error);
+      }
+    };
+
+    processMemories();
+  }, []);
+
   const handleTerminalReady = () => {
     setIsTerminalReady(true);
   };
@@ -222,9 +207,8 @@ function App() {
     messagesEndRef.current?.scrollIntoView({behavior : 'smooth'})
   }
 
-  useEffect(scrollToBottom, [messages]); // scroll to bottom whenever messages change
+  useEffect(scrollToBottom, [messages]);
 
-  // Helper function to write to terminal
   const writeToTerminal = (message: string, isWrite: boolean = false) => {
     if (isTerminalReady && terminalRef.current) {
       if (isWrite) {
@@ -237,7 +221,6 @@ function App() {
     }
   };
 
-  // Helper function to check if a chunk is terminal output
   const isTerminalOutput = (chunk: string): boolean => {
     return chunk.includes("Model not found locally") || 
            chunk.includes("pulling manifest") || 
@@ -248,33 +231,32 @@ function App() {
            chunk.includes("success");
   };
 
-  // Called When Send Button is clicked
-  const askGemma = async () => { // Renamed sendMessage to askGemma
+  const askGemma = async () => {
     if (!input.trim()) return;
 
     const userMessage: Message = { 
-      id: Date.now().toString(), // Generate unique ID
+      id: Date.now().toString(),
       role: 'user' as const, 
       content: input 
     };
 
     const assistantMessage: Message = { 
-      id: (Date.now() + 1).toString(), // Generate unique ID for assistant
+      id: (Date.now() + 1).toString(),
       role: 'assistant' as const, 
       content: '', 
       displayedContent: '',
-      loading: true // Set loading to true initially
+      loading: true
     };
 
     let assistantMessageIndex: number = -1;
 
     setMessages(prev => {
       const updatedMessages = [...prev, userMessage, assistantMessage];
-      assistantMessageIndex = updatedMessages.length - 1; // Get the index of the newly added assistant message
+      assistantMessageIndex = updatedMessages.length - 1;
       return updatedMessages;
     });
     setInput('');
-    setIsLoadingResponse(true); // Set loading to true when API call starts
+    setIsLoadingResponse(true);
 
     let modelWasDownloaded = false;
     let isModelDownloadPhase = false;
@@ -310,9 +292,8 @@ function App() {
         const chunk = decoder.decode(value, { stream: true });
         buffer += chunk;
         
-        // Try to parse complete JSON objects from the buffer
         let lines = buffer.split('\n');
-        buffer = lines.pop() || ''; // Keep incomplete line in buffer
+        buffer = lines.pop() || '';
         
         for (const line of lines) {
           if (!line.trim()) continue;
@@ -320,7 +301,6 @@ function App() {
           try {
             const jsonResponse = JSON.parse(line);
             
-            // Handle model download status messages
             if (jsonResponse.status) {
               if (jsonResponse.status.includes("Model not found locally") || 
                   jsonResponse.status.includes("pulling manifest")) {
@@ -334,31 +314,26 @@ function App() {
                 writeToTerminal(jsonResponse.status);
                 writeToTerminal('\nModel download completed. Returning to chat...');
                 
-                // Close terminal after showing completion message
                 setTimeout(() => {
                   setShowTerminal(false);
-                  setIsTerminalReady(false); // Reset terminal ready state
-                  // Refresh the page to ensure the system uses the newly downloaded model
+                  setIsTerminalReady(false);
                   window.location.reload();
-                }, 3000); // Increased delay to 3 seconds to ensure user sees the completion message
+                }, 3000);
                 
               } else if (isModelDownloadPhase) {
                 writeToTerminal(jsonResponse.status);
               }
             }
             
-            // Handle download progress
             if (jsonResponse.digest && isModelDownloadPhase) {
               const progressMessage = `\r${jsonResponse.digest}: ${(jsonResponse.completed / jsonResponse.total * 100).toFixed(2)}%`;
               writeToTerminal(progressMessage, true);
             }
             
           } catch (e) {
-            // Handle non-JSON chunks
             const cleanChunk = line.trim();
             if (!cleanChunk) continue;
             
-            // Check if this is terminal output
             if (isTerminalOutput(cleanChunk)) {
               if (cleanChunk.includes("Model not found locally")) {
                 isModelDownloadPhase = true;
@@ -368,27 +343,22 @@ function App() {
               if (isModelDownloadPhase) {
                 writeToTerminal(cleanChunk);
                 
-                // Check for success in non-JSON format
                 if (cleanChunk.includes("success")) {
                   downloadCompleted = true;
                   isModelDownloadPhase = false;
                   writeToTerminal('\nModel download completed. Returning to chat...');
                   
-                  // Close terminal after showing completion message
                   setTimeout(() => {
                     setShowTerminal(false);
-                    setIsTerminalReady(false); // Reset terminal ready state
-                    // Refresh the page to ensure the system uses the newly downloaded model
+                    setIsTerminalReady(false);
                     window.location.reload();
                   }, 3000);
                 }
               }
             } else {
-              // This is regular chat content - only process if not in download phase or download is completed
               if (!isModelDownloadPhase || downloadCompleted) {
                 botReply += cleanChunk;
                 
-                // Update the displayed content character by character
                 for (let i = 0; i < cleanChunk.length; i++) {
                   await new Promise(resolve => setTimeout(resolve, 20));
                   setMessages(prev => {
@@ -407,7 +377,6 @@ function App() {
         }
       }
       
-      // Handle any remaining buffer content
       if (buffer.trim() && !isTerminalOutput(buffer.trim()) && (!isModelDownloadPhase || downloadCompleted)) {
         botReply += buffer.trim();
         setMessages(prev => {
@@ -421,17 +390,14 @@ function App() {
         });
       }
 
-      // Final cleanup and state updates - only if download wasn't successful
       if (modelWasDownloaded && !downloadCompleted) {
         writeToTerminal('\nModel download process completed. Returning to chat...');
-        // Close terminal after showing completion message
         setTimeout(() => {
           setShowTerminal(false);
-          setIsTerminalReady(false); // Reset terminal ready state
+          setIsTerminalReady(false);
         }, 3000);
       }
 
-      // Set final message content
       setMessages(prev => {
         const updated = [...prev];
         updated[assistantMessageIndex] = {
@@ -443,7 +409,6 @@ function App() {
         return updated;
       });
 
-      // After successful response from Gemma, mark tracker as completed
       if (selectedTracker && !completedTrackers.includes(selectedTracker.id)) {
         setCompletedTrackers(prev => [...prev, selectedTracker.id]);
       }
@@ -473,20 +438,18 @@ function App() {
     } finally {
       setIsLoadingResponse(false);
       
-      // Ensure terminal closes if model was downloaded but no success message was caught
       if (modelWasDownloaded && !downloadCompleted) {
         setTimeout(() => {
           setShowTerminal(false);
           setIsTerminalReady(false);
-          // Refresh the page to ensure the system uses the newly downloaded model
           window.location.reload();
-        }, 5000); // Fallback timeout
+        }, 5000);
       }
     }
   };
   
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key == 'Enter') askGemma() // Changed sendMessage to askGemma
+    if (e.key == 'Enter') askGemma()
   }
 
   return (
@@ -497,7 +460,7 @@ function App() {
             <img src={ISAClogo} alt="" className="logo" />
             <span className="brand">MindWell</span>
           </div>
-          <div className="trackers-list"> {/* New container for trackers */}
+          <div className="trackers-list">
             <h3>Trackers & Tools</h3>
             {trackers.map((tracker) => (
               <motion.button
@@ -505,7 +468,7 @@ function App() {
                 className={`tracker-item ${selectedTracker?.id === tracker.id ? 'selected' : ''} ${visitedTrackers.includes(tracker.id) ? 'visited' : ''} ${completedTrackers.includes(tracker.id) ? 'completed' : ''}`}
                 onClick={() => {
                   setSelectedTracker(tracker);
-                  
+                  setShowSettings(false);
                   if (!visitedTrackers.includes(tracker.id)) {
                     setVisitedTrackers(prev => [...prev, tracker.id]);
                   }
@@ -513,19 +476,17 @@ function App() {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
+                <img src={tracker.icon} alt={`${tracker.title} icon`} className="tracker-icon" />
                 {tracker.title}
               </motion.button>
             ))}
           </div>
         </div>
         <div className="lowerside">
-          <button className="queryBottom" onClick={() => setSelectedTracker(null)}>
+          <button className="queryBottom" onClick={() => {setSelectedTracker(null); setShowSettings(false)}}>
             <img src={homeicon} alt="" className = "Homeicon" />Home
             </button>
-          <button className="queryBottom">
-            <img src={voicemode} alt="" className = "VoiceIcon"/>Voice Mode
-            </button>
-          <button className="queryBottom">
+          <button className="queryBottom" onClick={() => {setSelectedTracker(null); setShowSettings(true)}}>
             <img src={settingsicon} alt="" className = "SettingsIcon"/>Settings
             </button>
         </div>
@@ -533,12 +494,16 @@ function App() {
       <div className="main">
         {showTerminal ? (
           <TerminalComponent terminalRef={terminalRef} fitAddonRef={fitAddonRef} onTerminalReady={handleTerminalReady} />
+        ) : showSettings ? (
+          <Settings />
         ) : selectedTracker ? (
           <div className="tracker-content-area">
             {selectedTracker.id === 'mood-summarizer' ? (
               <MoodSummarizer moodEntries={moodEntries} setMoodEntries={setMoodEntries} />
             ) : selectedTracker.id === 'wellness-tracker' ? (
               <WellnessTracker />
+            ) : selectedTracker.id === 'memory-lane' ? (
+              <MemoryLane />
             ) : selectedTracker.id === 'chat-assistant' ? (
                 <div className="mental-health-chat-section">
                     <div className="chat-header">
@@ -618,3 +583,4 @@ function App() {
 }
 
 export default App
+

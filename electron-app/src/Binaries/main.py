@@ -22,7 +22,7 @@ import re
 # Mood imports to log for graphs
 import json
 from datetime import datetime
-from memory import get_relevant_memories_general, get_relevant_memories_core, add_memory_core, add_memory_general, load_memories_core, load_memories_general
+from memory import add_special_memory_core, load_memories_special, get_relevant_special_memories_core, get_relevant_memories_general, get_relevant_memories_core, add_memory_core, add_memory_general, load_memories_core, load_memories_general
 
 # --- Configuration ---
 CONVERSATION_BUFFER_FILE = "conversation_buffer.json"
@@ -127,8 +127,8 @@ Your response:
 
 async def is_positive(question: str, model: OllamaLLM):
     positive_template = """
-Analyze the user's message and determine if it's a positive memory worth remembering.
-Respond with 'yes' if it is, and 'no' if it is not. Do not provide any other text or explanation.
+Analyze the user's message and determine if it's a special positive memory worth remembering.
+Respond with 'special' if it is, 'yes' if it is just a positive memory and 'no' if none of the above. Do not provide any other text or explanation.
 User message: {question}
 Your response:
 """
@@ -136,10 +136,10 @@ Your response:
     try:
         chain = positive_prompt | model
         result = await asyncio.to_thread(chain.invoke, {"question": question})
-        return result.strip().lower() == 'yes'
+        return result.strip().lower()
     except Exception as e:
         logging.error(f"Error during positivity analysis: {str(e)}")
-        return False
+        return "no"
 
 
 async def download_model_background(model_name, handler):
@@ -181,10 +181,13 @@ async def download_model_background(model_name, handler):
 
                 
 async def check_model():
-    model_check = subprocess.run(['ollama', 'list'], capture_output=True, text=True)
-    return model_check
-
-
+    proc = await asyncio.create_subprocess_exec(
+        "ollama", "list",
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE
+    )
+    stdout, stderr = await proc.communicate()
+    return stdout.decode().strip()
 
 async def is_valid(question: str, model: OllamaLLM):
     valid_prompt = ChatPromptTemplate.from_template("""
@@ -264,7 +267,8 @@ async def query_stream(request: Request):
         try:
             core_memories = get_relevant_memories_core(parsed.question)
             general_memories = get_relevant_memories_general(parsed.question)
-            context = "\n".join([mem['memory'] for mem in core_memories + general_memories])
+            special_memories = get_relevant_special_memories_core(parsed.question)
+            context = "\n".join([mem['memory'] for mem in core_memories + general_memories + special_memories])
             
             await asyncio.to_thread(chain.invoke, {
                 "context": context,
@@ -280,14 +284,18 @@ async def query_stream(request: Request):
             logging.error(f"Chain invoke error: {str(e)}")
 
             # Check if model exists locally
-            model_check = await check_model() # call async function
+            model_list = await check_model()
+            logging.info(f"Installed models:\n{model_list}")
 
-            if parsed.model not in model_check.stdout:
-                # Call CMD to pull the required moded
-                await handler.queue.put("Model not found locally. Downloading the model, please wait... (Check the command window for progress)")
-                asyncio.create_task(download_model_background(parsed.model, handler))
+            model_names = [line.split()[0].lower() for line in model_list.splitlines()[1:] if line.strip()]
+            if parsed.model.lower() not in model_names:
+                await handler.queue.put("Model not found locally. Downloading the model, please wait...")
+                await download_model_background(parsed.model, handler)
             else:
                 await handler.queue.put(f"Error: {str(e)}")
+        
+        finally:
+            await handler.queue.put("[END]")
 
     asyncio.create_task(run_chain_and_save())
     return StreamingResponse(handler.token_stream(), media_type="text/plain")
@@ -313,7 +321,11 @@ async def process_conversations():
                 continue
             
             await analyze_and_log_mood(question, analysis_model)
-            if await is_positive(question, analysis_model):
+            result = await is_positive(question, analysis_model)
+            
+            if result == "special":
+                add_special_memory_core(question)
+            elif result == "yes":
                 add_memory_core(question)
             
             valid, mem_type, value = await is_valid(question, analysis_model)
@@ -354,6 +366,10 @@ async def get_mood():
 @app.get("/core_memory")
 async def get_memory():
     return JSONResponse(content=load_memories_core())
+
+@app.get("/special_memory")
+async def get_special_memory():
+    return JSONResponse(content=load_memories_special())
 
 @app.get("/general_memory")
 async def get_mood_memory():

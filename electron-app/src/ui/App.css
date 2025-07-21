@@ -92,7 +92,16 @@ body {
   border-radius: 8px;
   text-align: left;
   transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
 }
+
+.tracker-icon {
+  width: 35px;
+  height: 35px;
+  margin-right: 8px;
+}
+
 
 .tracker-item:hover {
   background: #3e274a;
@@ -129,9 +138,9 @@ body {
 }
 
 .Homeicon, .VoiceIcon, .SettingsIcon {
-  height: 18px;
+  height: 35px;
   margin-right: 12px;
-  filter: invert(80%);
+  filter: invert(85%);
 }
 
 /* --- Main Content Area --- */

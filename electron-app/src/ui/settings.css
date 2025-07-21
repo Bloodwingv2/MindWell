@@ -1,0 +1,69 @@
+.settings-container {
+  padding: 40px;
+  background: #1a1a2e;
+  color: #e0e0e0;
+  overflow-y: auto;
+  height: calc(100vh - 80px);
+}
+
+.settings-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.settings-header h2 {
+  font-size: 3em;
+  font-weight: 700;
+  color: #8e44ad;
+}
+
+.settings-header p {
+  font-size: 1.2em;
+  color: #c0c0c0;
+}
+
+.settings-content {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.setting-item {
+  margin-bottom: 30px;
+}
+
+.setting-item label {
+  display: block;
+  font-size: 1.1em;
+  color: #c0c0c0;
+  margin-bottom: 10px;
+}
+
+.setting-item input {
+  width: 100%;
+  padding: 12px;
+  background: #2a2a4a;
+  border: 1px solid #33334d;
+  border-radius: 8px;
+  color: #e0e0e0;
+  font-size: 1em;
+}
+
+.setting-item input:focus {
+  border-color: #8e44ad;
+  outline: none;
+}
+
+.setting-item button {
+  padding: 12px 25px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1em;
+  transition: background-color 0.3s ease;
+  background-color: #8e44ad;
+  color: white;
+}
+
+.setting-item button:hover {
+  background-color: #9b59b6;
+}
