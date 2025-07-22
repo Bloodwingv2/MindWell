@@ -1,8 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './settings.css';
 
-const Settings: React.FC = () => {
-  const [userName, setUserName] = useState('');
+interface SettingsProps {
+  userName: string;
+  setUserName: (name: string) => void;
+}
+
+const Settings: React.FC<SettingsProps> = ({ userName, setUserName }) => {
+  const [localUserName, setLocalUserName] = useState(userName);
   const [theme, setTheme] = useState('dark');
   const [language, setLanguage] = useState('en');
   const [notifications, setNotifications] = useState({
@@ -11,7 +16,7 @@ const Settings: React.FC = () => {
   });
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setUserName(e.target.value);
+    setLocalUserName(e.target.value);
   };
 
   const handleThemeChange = () => {
@@ -30,7 +35,10 @@ const Settings: React.FC = () => {
   };
 
   const handleSave = () => {
-    console.log('Settings saved:', { userName, theme, language, notifications });
+    setUserName(localUserName);
+    localStorage.setItem('userName', localUserName);
+    console.log('Settings saved:', { userName: localUserName, theme, language, notifications });
+    alert('Settings Saved!');
   };
 
   const handleExportData = () => {
@@ -55,7 +63,7 @@ const Settings: React.FC = () => {
             <input
               type="text"
               id="userName"
-              value={userName}
+              value={localUserName}
               onChange={handleNameChange}
               placeholder="Enter your name"
             />

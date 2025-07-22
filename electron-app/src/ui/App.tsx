@@ -135,6 +135,14 @@ function App() {
   });
   const [currentAffirmation, setCurrentAffirmation] = useState('');
   const [moodEntries, setMoodEntries] = useState<{ mood: string; date: string }[]>([]);
+  const [userName, setUserName] = useState('User');
+
+  useEffect(() => {
+    const storedUserName = localStorage.getItem('userName');
+    if (storedUserName) {
+      setUserName(storedUserName);
+    }
+  }, []);
   const [isLoadingResponse, setIsLoadingResponse] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState('en');
   const [showTerminal, setShowTerminal] = useState(false);
@@ -270,6 +278,7 @@ function App() {
         },
         body: JSON.stringify({
           question: input,
+          userName: userName,
           context: selectedTracker ? selectedTracker.content : '',
           language: selectedLanguage,
         }),
@@ -495,7 +504,7 @@ function App() {
         {showTerminal ? (
           <TerminalComponent terminalRef={terminalRef} fitAddonRef={fitAddonRef} onTerminalReady={handleTerminalReady} />
         ) : showSettings ? (
-          <Settings />
+          <Settings userName={userName} setUserName={setUserName} />
         ) : selectedTracker ? (
           <div className="tracker-content-area">
             {selectedTracker.id === 'mood-summarizer' ? (
@@ -511,9 +520,9 @@ function App() {
                         <p>Your friendly and supportive AI companion.</p>
                     </div>
                     <div className="chats">
-                    {messages.map((message, index) => (
+                    {messages.map((message) => (
                         <motion.div
-                        key={index}
+                        key={message.id}
                         className={`message-container ${message.role}`}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -572,7 +581,7 @@ function App() {
           </div>
         ) : (
           <div className="welcome-screen">
-            <h2>Hello User 👋</h2>
+            <h2>Hello {userName} 👋</h2>
             <p>Select a tracker or tool from the sidebar to get started on your mental wellness journey.</p>
             {currentAffirmation && <p className="affirmation">{currentAffirmation}</p>}
           </div>

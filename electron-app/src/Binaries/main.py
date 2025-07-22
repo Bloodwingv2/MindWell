@@ -63,6 +63,7 @@ async def save_to_buffer(question: str, response: str):
 
 class QueryRequest(BaseModel): # Request structure for FastAPI
     question: str
+    userName: str = "User"
     context: str = ""
     model: str = "gemma3n:e2b"  # Default model with fallback
     language: str = "en" # Default to English
@@ -101,7 +102,7 @@ app.add_middleware(
 
 # --- Prompt Templates ---
 template = """
-You are GemmaTalk, a positive, friendly, and knowledgeable AI assistant created by Mirang Bhandari (a male human). Your purpose is to support and uplift the user at all times, especially during tough situations. Always highlight the positive side and reassure the user, no matter how bad things seem. Be helpful, kind, and encouraging in every response. Respond in {language} language.
+You are Mindwell, a positive, friendly, and knowledgeable AI assistant created by Mirang Bhandari (a male human). Your purpose is to support and uplift the user at all times, especially during tough situations. Always highlight the positive side and reassure the user, no matter how bad things seem. Be helpful, kind, and encouraging in every response. Respond in {language} language.
 
 Please keep the responses concise and to the point, while still being supportive and positive.
 
@@ -209,6 +210,8 @@ async def is_valid(question: str, model: OllamaLLM):
         validity = "true" in (lines[0] if lines else "")
         mem_type = lines[1].split(":", 1)[-1].strip() if len(lines) > 1 else ""
         value = lines[2].split(":", 1)[-1].strip() if len(lines) > 2 else ""
+        if mem_type.lower() == 'name':
+            return False, "", ""
         return validity, mem_type, value
     except Exception as e:
         logging.error(f"[is_valid error] {e}")
@@ -271,7 +274,10 @@ async def query_stream(request: Request):
             core_memories = get_relevant_memories_core(parsed.question)
             general_memories = get_relevant_memories_general(parsed.question)
             special_memories = get_relevant_special_memories_core(parsed.question)
-            context = "\n".join([mem['memory'] for mem in core_memories + general_memories + special_memories])
+            
+            # Combine all context sources
+            context = f"User's Name: {parsed.userName}\n{parsed.context}"
+            context += "\n".join([mem['memory'] for mem in core_memories + general_memories + special_memories])
             
             await asyncio.to_thread(chain.invoke, {
                 "context": context,
