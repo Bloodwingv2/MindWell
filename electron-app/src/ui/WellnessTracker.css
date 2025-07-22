@@ -99,6 +99,32 @@ body {
     cursor: not-allowed;
 }
 
+.reset-button {
+    background: #6a5acd; /* A slightly different shade of purple */
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    margin-top: 20px;
+    margin-left: 10px; /* Add some space between buttons */
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.reset-button:hover {
+    background: #7b68ee;
+}
+
+.reset-button:disabled {
+    background: #555;
+    cursor: not-allowed;
+}
+
 .spinner-small {
     border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: 50%;

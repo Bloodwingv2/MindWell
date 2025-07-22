@@ -374,6 +374,16 @@ async def get_mood_graph_value():
     except (FileNotFoundError, json.JSONDecodeError):
         return JSONResponse(content=[])
 
+@app.delete("/mood")
+async def clear_mood_log():
+    try:
+        with open("mood_log.json", "w") as f:
+            json.dump([], f)
+        return JSONResponse(content={"message": "Mood log cleared successfully"}, status_code=200)
+    except Exception as e:
+        logging.error(f"Error clearing mood log: {e}")
+        return JSONResponse(content={"error": "Failed to clear mood log"}, status_code=500)
+
 @app.get("/core_memory")
 async def get_memory():
     return JSONResponse(content=load_memories_core())

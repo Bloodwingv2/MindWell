@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import './MemoryLane.css';
 
 interface Memory {
   id: number;

@@ -51,7 +51,8 @@ const mapMoodToChartValue = (mood: number) => {
 const WellnessTracker: React.FC = () => {
   const [moodData, setMoodData] = useState<MoodEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchMoodData = async () => {
@@ -72,7 +73,7 @@ const WellnessTracker: React.FC = () => {
   };
 
   const handleRefresh = async () => {
-      setIsProcessing(true);
+      setIsRefreshing(true);
       setError(null);
       try {
           // First, process any buffered conversations to update the mood log
@@ -83,9 +84,26 @@ const WellnessTracker: React.FC = () => {
           setError("Failed to refresh data.");
           console.error(e);
       } finally {
-          setIsProcessing(false);
+          setIsRefreshing(false);
       }
-  }
+  };
+
+  const handleReset = async () => {
+    setIsResetting(true);
+    setError(null);
+    try {
+      const res = await fetch("http://localhost:8000/mood", { method: 'DELETE' });
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      await fetchMoodData(); // Refresh data after reset
+    } catch (e) {
+      setError("Failed to reset mood data.");
+      console.error(e);
+    } finally {
+      setIsResetting(false);
+    }
+  };
 
   useEffect(() => {
     fetchMoodData();
@@ -205,11 +223,18 @@ const WellnessTracker: React.FC = () => {
       <div className="wellness-tracker-header">
         <h2>Wellness Tracker</h2>
         <p>Visualize your mood trends and reflect on your emotional journey.</p>
-        <button className="refresh-button" onClick={handleRefresh} disabled={isProcessing}>
-            {isProcessing ? (
+        <button className="refresh-button" onClick={handleRefresh} disabled={isRefreshing}>
+            {isRefreshing ? (
                 <><div className="spinner-small"></div> Processing...</>
             ) : (
                 'Refresh Graph'
+            )}
+        </button>
+        <button className="reset-button" onClick={handleReset} disabled={isResetting}>
+            {isResetting ? (
+                <><div className="spinner-small"></div> Resetting...</>
+            ) : (
+                'Reset Graph'
             )}
         </button>
       </div>
