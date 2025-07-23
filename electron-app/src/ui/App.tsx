@@ -3,6 +3,8 @@ import WellnessTracker from './WellnessTracker';
 import MoodSummarizer from './MoodSummarizer';
 import MemoryLane from './MemoryLane';
 import Settings from './settings'; // Import Settings
+import Notification from './Notification';
+import './Notification.css';
 
 import ISAClogo from '../assets/MindWell.png'
 import sentbtn from '../assets/send-svgrepo-com.svg'
@@ -136,6 +138,15 @@ function App() {
   const [currentAffirmation, setCurrentAffirmation] = useState('');
   const [moodEntries, setMoodEntries] = useState<{ mood: string; date: string }[]>([]);
   const [userName, setUserName] = useState('User');
+  const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+  const showNotification = (message: string, type: 'success' | 'error') => {
+    setNotification({ message, type });
+  };
+
+  const handleCloseNotification = () => {
+    setNotification(null);
+  };
 
   useEffect(() => {
     const storedUserName = localStorage.getItem('userName');
@@ -504,7 +515,7 @@ function App() {
         {showTerminal ? (
           <TerminalComponent terminalRef={terminalRef} fitAddonRef={fitAddonRef} onTerminalReady={handleTerminalReady} />
         ) : showSettings ? (
-          <Settings userName={userName} setUserName={setUserName} />
+          <Settings userName={userName} setUserName={setUserName} showNotification={showNotification} />
         ) : selectedTracker ? (
           <div className="tracker-content-area">
             {selectedTracker.id === 'mood-summarizer' ? (
@@ -586,6 +597,13 @@ function App() {
           </div>
         )}
       </div>
+      {notification && (
+        <Notification
+          message={notification.message}
+          type={notification.type}
+          onClose={handleCloseNotification}
+        />
+      )}
     </div>
   )
 }

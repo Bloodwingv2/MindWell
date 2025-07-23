@@ -6,6 +6,9 @@ from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 
 # Importing necessary libraries for LLM and FastAPI
 from fastapi import FastAPI, Request # FastApi Libraries for Inference
+from fastapi.responses import FileResponse
+import pandas as pd
+import io
 from pydantic import BaseModel # Importing necessary libraries for FastApi
 from fastapi.responses import StreamingResponse # importing StreamingResponse from FastAPi
 from fastapi.responses import JSONResponse # Importing JSONResponse for returning JSON data
@@ -17,6 +20,8 @@ import logging
 import subprocess
 import os
 import re
+from memory import init_db
+import sqlite3 # Importing sqlite3 for database operations
 
 
 # Mood imports to log for graphs
@@ -406,6 +411,57 @@ async def get_mood_summary():
     if summary_data:
         return JSONResponse(content=[summary_data])
     return JSONResponse(content=[])
+
+@app.get("/export_data")
+async def export_data():
+    try:
+        db_path = os.path.join(os.path.dirname(__file__), "memory.db")
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+
+        all_data = io.StringIO()
+
+        tables = ["core_memories", "general_memories", "special_memories", "conversation_buffer", "daily_summaries"]
+
+        for table_name in tables:
+            cursor.execute(f"SELECT * FROM {table_name}")
+            rows = cursor.fetchall()
+            column_names = [description[0] for description in cursor.description]
+
+            if rows:
+                all_data.write(f"Table: {table_name}\n")
+                df = pd.DataFrame(rows, columns=column_names)
+                df.to_csv(all_data, index=False)
+                all_data.write("\n\n")
+        
+        conn.close()
+        all_data.seek(0)
+
+        return StreamingResponse(
+            io.BytesIO(all_data.getvalue().encode("utf-8")),
+            media_type="text/csv",
+            headers={
+                "Content-Disposition": "attachment; filename=memory_export.csv"
+            }
+        )
+
+    except Exception as e:
+        logging.error(f"Error exporting data: {e}")
+        return JSONResponse(content={"error": str(e)}, status_code=500)
+
+@app.delete("/clear_data")
+async def clear_data():
+    try:
+        db_path = os.path.join(os.path.dirname(__file__), "memory.db")
+        if os.path.exists(db_path):
+            os.remove(db_path)
+            init_db() # Re-initialize the database after deletion
+            return JSONResponse(content={"message": "All data cleared successfully"}, status_code=200)
+        else:
+            return JSONResponse(content={"message": "Database file not found"}, status_code=404)
+    except Exception as e:
+        logging.error(f"Error clearing data: {e}")
+        return JSONResponse(content={"error": str(e)}, status_code=500)
 
 # --- Main Execution Block ---
 if __name__ == "__main__":
