@@ -521,29 +521,28 @@ function App() {
                     </div>
                     <div className="chats">
                     {messages.map((message) => (
-                        <motion.div
-                        key={message.id}
-                        className={`message-container ${message.role}`}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.3 }}
-                        >
-                        <div className="message-content">
-                            <p>
-                            {message.displayedContent || message.content}
-                            {message.role === 'assistant' && message.loading && (
-                                <div className="loading-dots">
-                                <span></span>
-                                <span></span>
-                                <span></span>
-                                </div>
-                            )}
-                            </p>
-                        </div>
-                        </motion.div>
-                    ))}
+                    <motion.div
+                      key={message.id}
+                      className={`message-container ${message.role}`}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <div className="message-content">
+                        {message.role === 'assistant' && message.loading && !message.displayedContent ? (
+                          <div className="loading-dots typing-indicator">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                          </div>
+                        ) : (
+                          <p>{message.displayedContent || message.content}</p>
+                        )}
+                      </div>
+                    </motion.div>
+                  ))}
                     <div ref={messagesEndRef} />
-                    </div>
+                  </div>
                     <div className="chatfooter">
                     <motion.div
                         className="inputbox"

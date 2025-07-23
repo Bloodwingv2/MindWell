@@ -6,11 +6,11 @@ from datetime import datetime
 MEMORY_DB = "memory.db"
 
 def init_db():
-    """Initializes the database with core and general memories tables."""
+    """Initializes the database with all required tables."""
     conn = sqlite3.connect(MEMORY_DB)
     cursor = conn.cursor()
     
-    # Create core memories table
+    # --- Memory Tables ---
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS core_memories (
             id INTEGER PRIMARY KEY,
@@ -18,8 +18,6 @@ def init_db():
             timestamp TEXT NOT NULL
         )
     ''')
-
-    # Create general memories table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS general_memories (
             id INTEGER PRIMARY KEY,
@@ -27,7 +25,6 @@ def init_db():
             timestamp TEXT NOT NULL
         )
     ''')
-    
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS special_memories (
             id INTEGER PRIMARY KEY,
@@ -37,11 +34,93 @@ def init_db():
         )
     ''')
 
+    # --- Conversation Buffer Table ---
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS conversation_buffer (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+            sender TEXT NOT NULL,
+            message TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'unread'
+        )
+    ''')
+
+    # --- Daily Summaries Table ---
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS daily_summaries (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            date TEXT NOT NULL UNIQUE,
+            summary TEXT NOT NULL,
+            tips TEXT NOT NULL
+        )
+    ''')
+
     conn.commit()
     conn.close()
 
 # Call init_db() on module load
 init_db()
+
+# --- Summary Functions ---
+def get_today_summary(date: str):
+    """Fetches the summary for a specific date."""
+    conn = sqlite3.connect(MEMORY_DB)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT summary, tips FROM daily_summaries WHERE date = ?", (date,))
+    summary = cursor.fetchone()
+    conn.close()
+    return dict(summary) if summary else None
+
+def upsert_today_summary(date: str, summary: str, tips: str):
+    """Inserts or updates the summary for a specific date."""
+    conn = sqlite3.connect(MEMORY_DB)
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            "INSERT INTO daily_summaries (date, summary, tips) VALUES (?, ?, ?) ON CONFLICT(date) DO UPDATE SET summary = excluded.summary, tips = excluded.tips",
+            (date, summary, tips)
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+# --- Buffer Functions ---
+
+def add_to_buffer(sender: str, message: str):
+    """Adds a message to the conversation buffer."""
+    conn = sqlite3.connect(MEMORY_DB)
+    cursor = conn.cursor()
+    timestamp = datetime.now().isoformat()
+    try:
+        cursor.execute(
+            "INSERT INTO conversation_buffer (timestamp, sender, message) VALUES (?, ?, ?)",
+            (timestamp, sender, message)
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+def get_unread_buffer():
+    """Fetches all unread messages from the buffer, ordered by timestamp."""
+    conn = sqlite3.connect(MEMORY_DB)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, sender, message FROM conversation_buffer WHERE status = 'unread' ORDER BY timestamp ASC")
+    messages = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    return messages
+
+def delete_processed_buffer(ids):
+    """Deletes processed messages from the buffer by their IDs."""
+    conn = sqlite3.connect(MEMORY_DB)
+    cursor = conn.cursor()
+    try:
+        cursor.executemany("DELETE FROM conversation_buffer WHERE id = ?", [(id,) for id in ids])
+        conn.commit()
+    finally:
+        conn.close()
+
 
 def load_memories_core(table="core_memories"):
     """Loads all memories from the specified table."""
@@ -221,3 +300,41 @@ def add_memory_general(memory_text, table="general_memories"):
     finally:
         conn.close()
     return was_added
+
+def clear_memories(table="core_memories"):
+    """Clears all memories from the specified table."""
+    conn = sqlite3.connect(MEMORY_DB)
+    cursor = conn.cursor()
+    cursor.execute(f"DELETE FROM {table}")
+    conn.commit()
+    conn.close()
+
+def clear_all_memories():
+    """Clears all memories from all tables."""
+    clear_memories("core_memories")
+    clear_memories("general_memories")
+    clear_memories("special_memories")
+    
+def delete_memory(memory_text, table="core_memories"):
+    """Deletes a specific memory from the specified table."""
+    conn = sqlite3.connect(MEMORY_DB)
+    cursor = conn.cursor()
+    cursor.execute(f"DELETE FROM {table} WHERE memory = ?", (memory_text,))
+    conn.commit()
+    conn.close()
+    
+def delete_special_memory(memory_text, table="special_memories"):
+    """Deletes a specific memory from the specified table."""
+    conn = sqlite3.connect(MEMORY_DB)
+    cursor = conn.cursor()
+    cursor.execute(f"DELETE FROM {table} WHERE memory = ?", (memory_text,))
+    conn.commit()
+    conn.close()
+
+def delete_general_memory(memory_text, table="general_memories"):
+    """Deletes a specific memory from the specified table."""
+    conn = sqlite3.connect(MEMORY_DB)
+    cursor = conn.cursor()
+    cursor.execute(f"DELETE FROM {table} WHERE memory = ?", (memory_text,))
+    conn.commit()
+    conn.close()

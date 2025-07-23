@@ -22,14 +22,20 @@ import re
 # Mood imports to log for graphs
 import json
 from datetime import datetime
-from memory import add_special_memory_core, load_memories_special, get_relevant_special_memories_core, get_relevant_memories_general, get_relevant_memories_core, add_memory_core, add_memory_general, load_memories_core, load_memories_general
+from memory import (
+    add_special_memory_core, load_memories_special, get_relevant_special_memories_core, 
+    get_relevant_memories_general, get_relevant_memories_core, add_memory_core, 
+    add_memory_general, load_memories_core, load_memories_general,
+    add_to_buffer, get_unread_buffer, delete_processed_buffer,
+    get_today_summary, upsert_today_summary
+)
 
 # Import string formatters
 from titlecase import titlecase
 
 
 # --- Configuration ---
-CONVERSATION_BUFFER_FILE = "conversation_buffer.json"
+# CONVERSATION_BUFFER_FILE = "conversation_buffer.json" # No longer needed
 
 # --- Helper Functions ---
 async def log_mood(mood: int):
@@ -44,22 +50,9 @@ async def log_mood(mood: int):
         with open("mood_log.json", "w") as f:
             json.dump([entry], f, indent=4)
 
-async def save_to_buffer(question: str, response: str):
-    entry = {"question": question, "response": response, "timestamp": datetime.now().isoformat()}
-    try:
-        # Read existing data
-        try:
-            with open(CONVERSATION_BUFFER_FILE, "r") as f:
-                data = json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
-            data = []
-        
-        # Append new entry and write back
-        data.append(entry)
-        with open(CONVERSATION_BUFFER_FILE, "w") as f:
-            json.dump(data, f, indent=4)
-    except Exception as e:
-        logging.error(f"Error saving to conversation buffer: {e}")
+# This function is replaced by add_to_buffer from memory.py
+# async def save_to_buffer(question: str, response: str):
+#     ...
 
 class QueryRequest(BaseModel): # Request structure for FastAPI
     question: str
@@ -217,44 +210,51 @@ async def is_valid(question: str, model: OllamaLLM):
         logging.error(f"[is_valid error] {e}")
         return False, "", ""
 
-async def today_generate(question: str, model: OllamaLLM):
+async def today_generate(conversation_context: str, model: OllamaLLM):
     today_str = datetime.now().strftime("%Y-%m-%d")
-    today_filename = f"today_summary_{today_str}.json"
-    # ... (rest of the function is complex and remains the same, just without handler)
     try:
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        today_filename = os.path.join(script_dir, f"today_summary_{today_str}.json")
-        for f in os.listdir(script_dir):
-            if f.startswith("today_summary_") and f.endswith(".json") and f != os.path.basename(today_filename):
-                os.remove(os.path.join(script_dir, f))
+        # Check for existing summary to provide context
+        existing_summary_data = get_today_summary(today_str)
         existing_context = ""
-        if os.path.exists(today_filename):
-            with open(today_filename, "r") as f:
-                existing_data = json.load(f)
-                if existing_data:
-                    existing_summary = existing_data[0].get("summary", "")
-                    existing_tips = existing_data[0].get("tips", "")
-                    existing_context = f"### Summary\n{existing_summary}\n\n### Tips\n{existing_tips}"
+        if existing_summary_data:
+            existing_summary = existing_summary_data.get("summary", "")
+            existing_tips = existing_summary_data.get("tips", "")
+            existing_context = f"### Summary\n{existing_summary}\n\n### Tips\n{existing_tips}"
+
         prompt_template = ChatPromptTemplate.from_template("""
-        You are an assistant that provides a short, structured summary of a mental health conversation, followed by actionable tips.
-        Context (if any): {existing_context}
-        User: {question}
-        Respond in this format:
+        You are a helpful, empathetic mental health assistant. Your task is to read the conversation and generate:
+
+        1. A short, emotionally aware summary of the user's mental and emotional state.
+        2. Three actionable, supportive tips.
+
+        You must reply strictly in the following format and say nothing else:
+
         ### Summary
-        <Concise summary here>
+        <Concise, emotionally intelligent summary here>
+
         ### Tips
-        - Tip 1
-        - Tip 2
-        - Tip 3
+        - <Actionable, supportive tip 1>
+        - <Actionable, supportive tip 2>
+        - <Actionable, supportive tip 3>
+
+        Only return this format. Do not add explanations, prefaces, or confirmations.
+
+        Context (if any): {existing_context}  
+        Conversation: {conversation_context}
         """)
+        
         chain = prompt_template | model
-        result = await asyncio.to_thread(chain.invoke, {"existing_context": existing_context, "question": question })
+        result = await asyncio.to_thread(chain.invoke, {"existing_context": existing_context, "conversation_context": conversation_context })
         parts = result.strip().split("### Tips", maxsplit=1)
-        summary_part = parts[0].replace("### Summary", "").replace("*", "").strip() if len(parts) > 0 else ""
-        tips_part = parts[1].replace("*", "").strip() if len(parts) > 1 else ""
-        entry = {"summary": summary_part, "tips": tips_part}
-        with open(today_filename, "w") as f:
-            json.dump([entry], f, indent=4)
+        summary_part = parts[0].replace("### Summary", "").strip() if len(parts) > 0 else ""
+        tips_part = parts[1].strip() if len(parts) > 1 else ""
+        
+        # Clean up the tips to be a simple newline-separated list
+        tips_part = "\n".join([line.strip().lstrip("-*• ") for line in tips_part.splitlines() if line.strip()])
+
+        # Upsert the new summary into the database
+        upsert_today_summary(today_str, summary_part, tips_part)
+
     except Exception as e:
         logging.error(f"[today_generate error] {e}")
 
@@ -286,7 +286,8 @@ async def query_stream(request: Request):
             })
 
             # After generation, save to buffer
-            await save_to_buffer(parsed.question, handler.buffer)
+            add_to_buffer(sender='user', message=parsed.question)
+            add_to_buffer(sender='assistant', message=handler.buffer)
                 
         except Exception as e:
             # Main Code for Calling async functions
@@ -312,11 +313,7 @@ async def query_stream(request: Request):
 @app.post("/process_conversations")
 async def process_conversations():
     try:
-        try:
-            with open(CONVERSATION_BUFFER_FILE, "r") as f:
-                conversations = json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
-            return JSONResponse(content={"message": "Buffer is empty or not found."}, status_code=200)
+        conversations = get_unread_buffer()
 
         if not conversations:
             return JSONResponse(content={"message": "Buffer is empty."}, status_code=200)
@@ -324,8 +321,12 @@ async def process_conversations():
         # Use the default model for analysis to conserve VRAM
         analysis_model = OllamaLLM(model="gemma3n:e2b")
 
-        for conv in conversations:
-            question = conv.get("question")
+        # We only want to process the user's messages from the buffer
+        user_messages = [conv for conv in conversations if conv.get("sender") == "user"]
+        message_ids_to_delete = [conv["id"] for conv in conversations]
+
+        for conv in user_messages:
+            question = conv.get("message")
             if not question:
                 continue
             
@@ -343,13 +344,15 @@ async def process_conversations():
             if valid and value:
                 add_memory_general(value)
 
-            await today_generate(question, analysis_model)
+        # Generate the daily summary from the full conversation context
+        conversation_context = "\n".join([f'{conv["sender"]}: {conv["message"]}' for conv in conversations])
+        await today_generate(conversation_context, analysis_model)
 
-        # Clear the buffer after processing
-        with open(CONVERSATION_BUFFER_FILE, "w") as f:
-            json.dump([], f)
+        # Delete the processed messages from the buffer
+        if message_ids_to_delete:
+            delete_processed_buffer(message_ids_to_delete)
 
-        return JSONResponse(content={"message": f"Successfully processed {len(conversations)} conversations."}, status_code=200)
+        return JSONResponse(content={"message": f"Successfully processed {len(user_messages)} user messages."})
 
     except Exception as e:
         logging.error(f"Error processing buffer: {e}")
@@ -399,12 +402,10 @@ async def get_mood_memory():
 @app.get("/mood_summary")
 async def get_mood_summary():
     today_str = datetime.now().strftime("%Y-%m-%d")
-    today_filename = f"today_summary_{today_str}.json"
-    try:
-        with open(today_filename, "r") as f:
-            return JSONResponse(content=json.load(f))
-    except (FileNotFoundError, json.JSONDecodeError):
-        return JSONResponse(content=[])
+    summary_data = get_today_summary(today_str)
+    if summary_data:
+        return JSONResponse(content=[summary_data])
+    return JSONResponse(content=[])
 
 # --- Main Execution Block ---
 if __name__ == "__main__":

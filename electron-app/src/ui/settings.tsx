@@ -8,36 +8,14 @@ interface SettingsProps {
 
 const Settings: React.FC<SettingsProps> = ({ userName, setUserName }) => {
   const [localUserName, setLocalUserName] = useState(userName);
-  const [theme, setTheme] = useState('dark');
-  const [language, setLanguage] = useState('en');
-  const [notifications, setNotifications] = useState({
-    newMemory: true,
-    moodSummary: true,
-  });
-
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setLocalUserName(e.target.value);
   };
-
-  const handleThemeChange = () => {
-    setTheme(theme === 'dark' ? 'light' : 'dark');
-  };
-
-  const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setLanguage(e.target.value);
-  };
-
-  const handleNotificationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setNotifications({
-      ...notifications,
-      [e.target.name]: e.target.checked,
-    });
-  };
-
+  
   const handleSave = () => {
     setUserName(localUserName);
     localStorage.setItem('userName', localUserName);
-    console.log('Settings saved:', { userName: localUserName, theme, language, notifications });
+    console.log('Settings saved:', { userName: localUserName});
     alert('Settings Saved!');
   };
 
@@ -67,64 +45,6 @@ const Settings: React.FC<SettingsProps> = ({ userName, setUserName }) => {
               onChange={handleNameChange}
               placeholder="Enter your name"
             />
-          </div>
-        </div>
-
-        <div className="settings-card">
-          <h3>Appearance</h3>
-          <div className="setting-item">
-            <div className="toggle-switch">
-              <label>Dark Mode</label>
-              <label className="switch">
-                <input type="checkbox" checked={theme === 'dark'} onChange={handleThemeChange} />
-                <span className="slider"></span>
-              </label>
-            </div>
-          </div>
-        </div>
-
-        <div className="settings-card">
-          <h3>Language</h3>
-          <div className="setting-item">
-            <label htmlFor="language">Select Language</label>
-            <select id="language" value={language} onChange={handleLanguageChange}>
-              <option value="en">English</option>
-              <option value="es">Spanish</option>
-              <option value="fr">French</option>
-              <option value="de">German</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="settings-card">
-          <h3>Notifications</h3>
-          <div className="setting-item">
-            <div className="toggle-switch">
-              <label>New Memory Alerts</label>
-              <label className="switch">
-                <input
-                  type="checkbox"
-                  name="newMemory"
-                  checked={notifications.newMemory}
-                  onChange={handleNotificationChange}
-                />
-                <span className="slider"></span>
-              </label>
-            </div>
-          </div>
-          <div className="setting-item">
-            <div className="toggle-switch">
-              <label>Mood Summaries</label>
-              <label className="switch">
-                <input
-                  type="checkbox"
-                  name="moodSummary"
-                  checked={notifications.moodSummary}
-                  onChange={handleNotificationChange}
-                />
-                <span className="slider"></span>
-              </label>
-            </div>
           </div>
         </div>
 
