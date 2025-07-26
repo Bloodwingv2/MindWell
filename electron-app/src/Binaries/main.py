@@ -28,11 +28,10 @@ import sqlite3 # Importing sqlite3 for database operations
 import json
 from datetime import datetime
 from memory import (
-    add_special_memory_core, load_memories_special, get_relevant_special_memories_core, 
-    get_relevant_memories_general, get_relevant_memories_core, add_memory_core, 
-    add_memory_general, load_memories_core, load_memories_general,
+    add_special_memory, load_memories_special, get_relevant_special_memories,  
     add_to_buffer, get_unread_buffer, delete_processed_buffer,
-    get_today_summary, upsert_today_summary
+    get_today_summary, upsert_today_summary,
+    update_special_memory, delete_special_memory
 )
 
 # Import string formatters
@@ -69,6 +68,20 @@ class QueryRequest(BaseModel): # Request structure for FastAPI
 class MoodRequest(BaseModel):
     graph: int
 
+class MemoryUpdateRequest(BaseModel):
+    id: int
+    memory: str
+    table: str
+
+class SpecialMemoryUpdateRequest(BaseModel):
+    id: int
+    title: str
+    memory: str
+
+class MemoryDeleteRequest(BaseModel):
+    id: int
+    table: str
+
 class customhandler(StreamingStdOutCallbackHandler):
     def __init__(self):
         self.buffer = ""
@@ -101,6 +114,8 @@ app.add_middleware(
 # --- Prompt Templates ---
 template = """
 You are Mindwell, a positive, friendly, and knowledgeable AI assistant created by Mirang Bhandari (a male human). Your purpose is to support and uplift the user at all times, especially during tough situations. Always highlight the positive side and reassure the user, no matter how bad things seem. Be helpful, kind, and encouraging in every response. Respond in {language} language.
+
+Use the conversation history **only if** the user appears sad, frustrated, anxious, or emotionally down. If the message is neutral or positive, **ignore the context completely**.
 
 Please keep the responses concise and to the point, while still being supportive and positive.
 
@@ -276,13 +291,11 @@ async def query_stream(request: Request):
 
     async def run_chain_and_save():
         try:
-            core_memories = get_relevant_memories_core(parsed.question)
-            general_memories = get_relevant_memories_general(parsed.question)
-            special_memories = get_relevant_special_memories_core(parsed.question)
+            special_memories = get_relevant_special_memories(parsed.question)
             
             # Combine all context sources
             context = f"User's Name: {parsed.userName}\n{parsed.context}"
-            context += "\n".join([mem['memory'] for mem in core_memories + general_memories + special_memories])
+            context += "\n".join([mem['memory'] for mem in special_memories])
             
             await asyncio.to_thread(chain.invoke, {
                 "context": context,
@@ -341,13 +354,8 @@ async def process_conversations():
             if result.startswith("special:"):
                 title = result.split(":", 1)[1].strip()
                 title = title.title()
-                add_special_memory_core(question, title)
-            elif result == "yes":
-                add_memory_core(question)
+                add_special_memory(question, title)
             
-            valid, mem_type, value = await is_valid(question, analysis_model)
-            if valid and value:
-                add_memory_general(value)
 
         # Generate the daily summary from the full conversation context
         conversation_context = "\n".join([f'{conv["sender"]}: {conv["message"]}' for conv in conversations])
@@ -364,10 +372,6 @@ async def process_conversations():
         return JSONResponse(content={"error": str(e)}, status_code=500)
 
 # --- Other Endpoints (Mood, Memory, etc.) ---
-
-@app.get("/models")
-async def get_available_models():
-    return {"available_models": ["gemma3n:e2b", "mistral", "gemma2:2b"]}
     
 @app.post("/mood")
 async def post_mood_data_json(data: MoodRequest):
@@ -392,17 +396,40 @@ async def clear_mood_log():
         logging.error(f"Error clearing mood log: {e}")
         return JSONResponse(content={"error": "Failed to clear mood log"}, status_code=500)
 
-@app.get("/core_memory")
-async def get_memory():
-    return JSONResponse(content=load_memories_core())
 
 @app.get("/special_memory")
 async def get_special_memory():
     return JSONResponse(content=load_memories_special())
 
-@app.get("/general_memory")
-async def get_mood_memory():
-    return JSONResponse(content=load_memories_general())
+@app.put("/memory")
+async def update_memory_endpoint(request: MemoryUpdateRequest):
+    try:
+        update_special_memory(request.id, request.memory, request.table)
+        return JSONResponse(content={"message": "Memory updated successfully"}, status_code=200)
+    except Exception as e:
+        logging.error(f"Error updating memory: {e}")
+        return JSONResponse(content={"error": str(e)}, status_code=500)
+
+@app.put("/special_memory")
+async def update_special_memory_endpoint(request: SpecialMemoryUpdateRequest):
+    try:
+        update_special_memory(request.id, request.title, request.memory)
+        return JSONResponse(content={"message": "Special memory updated successfully"}, status_code=200)
+    except Exception as e:
+        logging.error(f"Error updating special memory: {e}")
+        return JSONResponse(content={"error": str(e)}, status_code=500)
+
+@app.delete("/memory")
+async def delete_memory_endpoint(request: MemoryDeleteRequest):
+    try:
+        if request.table == "special_memories":
+            delete_special_memory(request.id)
+        else:
+            return JSONResponse(content={"error": "Invalid table specified"}, status_code=400)
+        return JSONResponse(content={"message": "Memory deleted successfully"}, status_code=200)
+    except Exception as e:
+        logging.error(f"Error deleting memory: {e}")
+        return JSONResponse(content={"error": str(e)}, status_code=500)
 
 @app.get("/mood_summary")
 async def get_mood_summary():
@@ -421,7 +448,7 @@ async def export_data():
 
         all_data = io.StringIO()
 
-        tables = ["core_memories", "general_memories", "special_memories", "conversation_buffer", "daily_summaries"]
+        tables = ["special_memories", "conversation_buffer", "daily_summaries"]
 
         for table_name in tables:
             cursor.execute(f"SELECT * FROM {table_name}")
@@ -468,4 +495,3 @@ if __name__ == "__main__":
     import uvicorn
     logging.basicConfig(level=logging.INFO)
     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=False)
-

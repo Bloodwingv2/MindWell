@@ -12,20 +12,6 @@ def init_db():
     
     # --- Memory Tables ---
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS core_memories (
-            id INTEGER PRIMARY KEY,
-            memory TEXT NOT NULL UNIQUE,
-            timestamp TEXT NOT NULL
-        )
-    ''')
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS general_memories (
-            id INTEGER PRIMARY KEY,
-            memory TEXT NOT NULL UNIQUE,
-            timestamp TEXT NOT NULL
-        )
-    ''')
-    cursor.execute('''
         CREATE TABLE IF NOT EXISTS special_memories (
             id INTEGER PRIMARY KEY,
             title TEXT NOT NULL,
@@ -122,104 +108,17 @@ def delete_processed_buffer(ids):
         conn.close()
 
 
-def load_memories_core(table="core_memories"):
-    """Loads all memories from the specified table."""
-    conn = sqlite3.connect(MEMORY_DB)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    cursor.execute(f"SELECT memory, timestamp FROM {table} ORDER BY timestamp DESC")
-    memories = [dict(row) for row in cursor.fetchall()]
-    conn.close()
-    return memories
-
-def load_memories_general(table="general_memories"):
-    """Loads all memories from the specified table."""
-    conn = sqlite3.connect(MEMORY_DB)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    cursor.execute(f"SELECT memory, timestamp FROM {table} ORDER BY timestamp DESC")
-    memories = [dict(row) for row in cursor.fetchall()]
-    conn.close()
-    return memories
-
 def load_memories_special(table="special_memories"):
     """Loads all memories from the specified table."""
     conn = sqlite3.connect(MEMORY_DB)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
-    cursor.execute(f"SELECT title, memory, timestamp FROM {table} ORDER BY timestamp DESC")
+    cursor.execute(f"SELECT id, title, memory, timestamp FROM {table} ORDER BY timestamp DESC")
     memories = [dict(row) for row in cursor.fetchall()]
     conn.close()
     return memories
 
-def get_relevant_memories_core(query, table="core_memories", k=20):
-    """Retrieves the most relevant memories using keyword matching from the specified table."""
-    if not query:
-        return []
-
-    conn = sqlite3.connect(MEMORY_DB)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-
-    query_words = query.lower().split()
-    search_clauses = [f"memory LIKE ?" for _ in query_words]
-    sql_query = f"SELECT memory, timestamp FROM {table} WHERE {' OR '.join(search_clauses)}"
-    like_params = [f"%{word}%" for word in query_words]
-
-    cursor.execute(sql_query, like_params)
-    results = cursor.fetchall()
-    conn.close()
-
-    if not results:
-        return []
-
-    query_word_set = set(query_words)
-    scored_memories = []
-
-    for row in results:
-        memory_words = set(row['memory'].lower().split())
-        score = len(query_word_set.intersection(memory_words))
-        if score > 0:
-            scored_memories.append({"score": score, "memory": dict(row)})
-
-    scored_memories.sort(key=lambda x: x["score"], reverse=True)
-    return [item["memory"] for item in scored_memories[:k]]
-
-
-def get_relevant_memories_general(query, table="general_memories", k=20):
-    """Retrieves the most relevant memories using keyword matching from the specified table."""
-    if not query:
-        return []
-
-    conn = sqlite3.connect(MEMORY_DB)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-
-    query_words = query.lower().split()
-    search_clauses = [f"memory LIKE ?" for _ in query_words]
-    sql_query = f"SELECT memory, timestamp FROM {table} WHERE {' OR '.join(search_clauses)}"
-    like_params = [f"%{word}%" for word in query_words]
-
-    cursor.execute(sql_query, like_params)
-    results = cursor.fetchall()
-    conn.close()
-
-    if not results:
-        return []
-
-    query_word_set = set(query_words)
-    scored_memories = []
-
-    for row in results:
-        memory_words = set(row['memory'].lower().split())
-        score = len(query_word_set.intersection(memory_words))
-        if score > 0:
-            scored_memories.append({"score": score, "memory": dict(row)})
-
-    scored_memories.sort(key=lambda x: x["score"], reverse=True)
-    return [item["memory"] for item in scored_memories[:k]]
-
-def get_relevant_special_memories_core(query, table="special_memories", k=20):
+def get_relevant_special_memories(query, table="special_memories", k=20):
     """Retrieves the most relevant special memories using keyword matching from the specified table."""
     if not query:
         return []
@@ -253,23 +152,7 @@ def get_relevant_special_memories_core(query, table="special_memories", k=20):
     return [item["memory"] for item in scored_memories[:k]]
 
 
-def add_memory_core(memory_text, table="core_memories"):
-    """Adds a new, unique memory to the specified table."""
-    conn = sqlite3.connect(MEMORY_DB)
-    cursor = conn.cursor()
-    timestamp = datetime.now().isoformat()
-    was_added = False
-    try:
-        cursor.execute(f"INSERT OR IGNORE INTO {table} (memory, timestamp) VALUES (?, ?)", (memory_text, timestamp))
-        conn.commit()
-        was_added = cursor.rowcount > 0
-    except sqlite3.IntegrityError:
-        was_added = False
-    finally:
-        conn.close()
-    return was_added
-
-def add_special_memory_core(memory_text, title, table="special_memories"):
+def add_special_memory(memory_text, title, table="special_memories"):
     """Adds a new, unique memory to the specified table."""
     conn = sqlite3.connect(MEMORY_DB)
     cursor = conn.cursor()
@@ -285,56 +168,36 @@ def add_special_memory_core(memory_text, title, table="special_memories"):
         conn.close()
     return was_added
         
-def add_memory_general(memory_text, table="general_memories"):
-    """Adds a new, unique memory to the specified table."""
-    conn = sqlite3.connect(MEMORY_DB)
-    cursor = conn.cursor()
-    timestamp = datetime.now().isoformat()
-    was_added = False
-    try:
-        cursor.execute(f"INSERT OR IGNORE INTO {table} (memory, timestamp) VALUES (?, ?)", (memory_text, timestamp))
-        conn.commit()
-        was_added = cursor.rowcount > 0
-    except sqlite3.IntegrityError:
-        was_added = False
-    finally:
-        conn.close()
-    return was_added
 
-def clear_memories(table="core_memories"):
+def clear_memories(table):
     """Clears all memories from the specified table."""
     conn = sqlite3.connect(MEMORY_DB)
     cursor = conn.cursor()
     cursor.execute(f"DELETE FROM {table}")
     conn.commit()
     conn.close()
+    
+    
+def delete_special_memory(memory_id: int, table="special_memories"):
+    """Deletes a specific memory from the specified table by its ID."""
+    conn = sqlite3.connect(MEMORY_DB)
+    cursor = conn.cursor()
+    cursor.execute(f"DELETE FROM {table} WHERE id = ?", (memory_id,))
+    conn.commit()
+    conn.close()
+
+
+def update_special_memory(memory_id: int, new_title: str, new_memory_text: str):
+    """Updates a specific special memory."""
+    conn = sqlite3.connect(MEMORY_DB)
+    cursor = conn.cursor()
+    try:
+        cursor.execute("UPDATE special_memories SET title = ?, memory = ? WHERE id = ?", (new_title, new_memory_text, memory_id))
+        conn.commit()
+    finally:
+        conn.close()
+        
 
 def clear_all_memories():
     """Clears all memories from all tables."""
-    clear_memories("core_memories")
-    clear_memories("general_memories")
     clear_memories("special_memories")
-    
-def delete_memory(memory_text, table="core_memories"):
-    """Deletes a specific memory from the specified table."""
-    conn = sqlite3.connect(MEMORY_DB)
-    cursor = conn.cursor()
-    cursor.execute(f"DELETE FROM {table} WHERE memory = ?", (memory_text,))
-    conn.commit()
-    conn.close()
-    
-def delete_special_memory(memory_text, table="special_memories"):
-    """Deletes a specific memory from the specified table."""
-    conn = sqlite3.connect(MEMORY_DB)
-    cursor = conn.cursor()
-    cursor.execute(f"DELETE FROM {table} WHERE memory = ?", (memory_text,))
-    conn.commit()
-    conn.close()
-
-def delete_general_memory(memory_text, table="general_memories"):
-    """Deletes a specific memory from the specified table."""
-    conn = sqlite3.connect(MEMORY_DB)
-    cursor = conn.cursor()
-    cursor.execute(f"DELETE FROM {table} WHERE memory = ?", (memory_text,))
-    conn.commit()
-    conn.close()

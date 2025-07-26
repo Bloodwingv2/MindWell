@@ -24,7 +24,6 @@ const MemoryLane: React.FC = () => {
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       const data = await response.json();
       
-      // Simulate loading for smooth entrance animation
       setTimeout(() => {
         setMemories(data);
         setIsLoading(false);
@@ -47,14 +46,59 @@ const MemoryLane: React.FC = () => {
 
   const handleSave = async () => {
     if (!selectedMemory) return;
-    console.log('Saving:', selectedMemory);
-    handleCloseModal();
+
+    try {
+      const response = await fetch('http://localhost:8000/special_memory',
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            id: selectedMemory.id,
+            title: selectedMemory.title,
+            memory: selectedMemory.memory,
+          }),
+        });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      // Update the memory in the local state
+      setMemories(memories.map(m => m.id === selectedMemory.id ? selectedMemory : m));
+      handleCloseModal();
+    } catch (error) {
+      console.error('Error saving memory:', error);
+    }
   };
 
   const handleDelete = async () => {
     if (!selectedMemory) return;
-    console.log('Deleting:', selectedMemory);
-    handleCloseModal();
+
+    try {
+      const response = await fetch('http://localhost:8000/memory',
+        {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            id: selectedMemory.id,
+            table: 'special_memories',
+          }),
+        });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      // Remove the memory from the local state
+      setMemories(memories.filter(m => m.id !== selectedMemory.id));
+      handleCloseModal();
+    } catch (error) {
+      console.error('Error deleting memory:', error);
+    }
   };
 
   if (isLoading) {
