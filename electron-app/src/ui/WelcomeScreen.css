@@ -6,7 +6,7 @@
     justify-content: center;
     overflow-x: hidden;
     overflow-y: auto;
-    background: linear-gradient(135deg, #340647 0%, #43075a 30%, #2b084e 70%, #370c6b 100%);
+    background: linear-gradient(135deg, #2a053a 0%, #39074d 30%, #2b084e 70%, #370c6b 100%);
     padding: 1rem;
     box-sizing: border-box;
 }

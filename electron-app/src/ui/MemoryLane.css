@@ -1,9 +1,12 @@
 .memory-lane-container {
-  padding: 0 0 30px 0;
-  background: #1a1a2e;
+  padding: 20px 0;
+  background: transparent;
   color: #e0e0e0;
   overflow-y: auto;
-  height: calc(100vh - 80px);
+  height: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   scrollbar-width: thin;
   scrollbar-color: #8e44ad #2a2a4a;
   position: relative;
@@ -14,14 +17,14 @@
 }
 
 .memory-lane-container::-webkit-scrollbar-track {
-  background: #2a2a4a;
+  background: rgba(42, 42, 74, 0.3);
   border-radius: 10px;
 }
 
 .memory-lane-container::-webkit-scrollbar-thumb {
   background-color: #8e44ad;
   border-radius: 10px;
-  border: 2px solid #2a2a4a;
+  border: 2px solid rgba(42, 42, 74, 0.3);
 }
 
 .loading-container {
@@ -50,6 +53,7 @@
 .memory-lane-header {
   text-align: center;
   margin-bottom: 50px;
+  padding: 0 20px;
   opacity: 0;
   transform: translateY(-20px);
   transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
@@ -64,7 +68,7 @@
   font-size: 3rem;
   font-weight: 700;
   color: #8e44ad;
-  margin: 0 30px 0px 0;
+  margin: 0 0 15px 0;
   background: linear-gradient(135deg, #8e44ad, #9b59b6);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -74,14 +78,15 @@
 .memory-lane-header p {
   font-size: 1.2em;
   color: #c0c0c0;
-  margin: 15px 14px 0px 0;
+  margin: 0;
 }
 
 .memories-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
   gap: 30px;
-  padding: 0 20px;
+  padding: 0 40px 40px 40px;
+  flex: 1;
 }
 
 .memory-card {
@@ -93,8 +98,6 @@
     0 0 0 1px rgba(142, 68, 173, 0.1);
   transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
-  margin-right: 30px;
-  margin-bottom: 20px;
   position: relative;
   overflow: hidden;
   opacity: 0;
@@ -354,11 +357,11 @@
 @media (max-width: 768px) {
   .memories-grid {
     grid-template-columns: 1fr;
-    padding: 0 15px;
+    padding: 0 20px 40px 20px;
   }
 
-  .memory-card {
-    margin-right: 0;
+  .memory-lane-header {
+    padding: 0 20px;
   }
 
   .modal-content {
@@ -379,6 +382,5 @@
 
   .memory-lane-header h2 {
     font-size: 2rem;
-    margin-right: 0;
   }
 }

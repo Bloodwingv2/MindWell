@@ -453,7 +453,12 @@ function App() {
 
   return (
     <div className="app">
-      <div className="sidebar">
+      <motion.div
+          className="sidebar"
+          initial={{ x: -260, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+        >
         <div className="upperside">
           <div className="uppersidetop">
             <img src={ISAClogo} alt="" className="logo" />
@@ -472,8 +477,15 @@ function App() {
                     setVisitedTrackers(prev => [...prev, tracker.id]);
                   }
                 }}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                whileHover={{ scale: 1.03, backgroundColor: 'rgba(6, 16, 102, 0.1)', color: '#ffffff' }}
+                whileTap={{ scale: 0.97 }}
+                variants={{
+                  hidden: { opacity: 0, x: -20 },
+                  visible: { opacity: 1, x: 0 }
+                }}
+                initial="hidden"
+                animate="visible"
+                transition={{ duration: 0.3, delay: 0.1 + trackers.indexOf(tracker) * 0.05 }}
               >
                 <img src={tracker.icon} alt={`${tracker.title} icon`} className="tracker-icon" />
                 {tracker.title}
@@ -482,14 +494,38 @@ function App() {
           </div>
         </div>
         <div className="lowerside">
-          <button className="queryBottom" onClick={() => {setSelectedTracker(null); setShowSettings(false)}}>
+          <motion.button
+            className="queryBottom"
+            onClick={() => {setSelectedTracker(null); setShowSettings(false)}}
+            whileHover={{ scale: 1.03, backgroundColor: 'rgba(255, 255, 255, 0.1)', color: '#ffffff' }}
+            whileTap={{ scale: 0.97 }}
+            variants={{
+              hidden: { opacity: 0, x: -20 },
+              visible: { opacity: 1, x: 0 }
+            }}
+            initial="hidden"
+            animate="visible"
+            transition={{ duration: 0.3, delay: 0.1 + trackers.length * 0.05 }}
+          >
             <img src={homeicon} alt="" className = "Homeicon" />Home
-            </button>
-          <button className="queryBottom" onClick={() => {setSelectedTracker(null); setShowSettings(true)}}>
+          </motion.button>
+          <motion.button
+            className="queryBottom"
+            onClick={() => {setSelectedTracker(null); setShowSettings(true)}}
+            whileHover={{ scale: 1.03, backgroundColor: 'rgba(255, 255, 255, 0.1)', color: '#ffffff' }}
+            whileTap={{ scale: 0.97 }}
+            variants={{
+              hidden: { opacity: 0, x: -20 },
+              visible: { opacity: 1, x: 0 }
+            }}
+            initial="hidden"
+            animate="visible"
+            transition={{ duration: 0.3, delay: 0.1 + (trackers.length + 1) * 0.05 }}
+          >
             <img src={settingsicon} alt="" className = "SettingsIcon"/>Settings
-            </button>
+          </motion.button>
         </div>
-      </div>
+      </motion.div>
       <div className="main">
         {showTerminal ? (
           <TerminalComponent terminalRef={terminalRef} fitAddonRef={fitAddonRef} onTerminalReady={handleTerminalReady} />
@@ -514,9 +550,9 @@ function App() {
                     <motion.div
                       key={message.id}
                       className={`message-container ${message.role}`}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3 }}
+                      initial={{ opacity: 0, y: 20, scale: 0.8 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      transition={{ type: "spring", stiffness: 300, damping: 20, duration: 0.5 }}
                     >
                       <div className="message-content">
                         {message.role === 'assistant' && message.loading && !message.displayedContent ? (

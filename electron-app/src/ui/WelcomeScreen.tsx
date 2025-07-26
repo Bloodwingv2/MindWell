@@ -125,21 +125,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ userName, setSelectedTrac
         >
           Welcome back, 
           <span className="user-name"> {userName}</span>
-          <motion.span
-            className="wave-emoji"
-            animate={{ 
-              rotate: [0, 20, 0, -20, 0],
-              scale: [1, 1.1, 1]
-            }}
-            transition={{ 
-              duration: 2,
-              repeat: Infinity,
-              repeatDelay: 3,
-              ease: "easeInOut"
-            }}
-          >
-            👋
-          </motion.span>
+          👋
         </motion.h1>
 
         {/* Decorative divider */}

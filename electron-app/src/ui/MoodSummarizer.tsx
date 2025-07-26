@@ -7,7 +7,7 @@ interface MoodSummarizerProps {
   setMoodEntries: React.Dispatch<React.SetStateAction<{ mood: string; date: string }[]>>;
 }
 
-const MoodSummarizer: React.FC<MoodSummarizerProps> = ({ moodEntries, setMoodEntries }) => {
+const MoodSummarizer: React.FC<MoodSummarizerProps> = () => {
   const [summary, setSummary] = useState('');
   const [tips, setTips] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -22,7 +22,7 @@ const MoodSummarizer: React.FC<MoodSummarizerProps> = ({ moodEntries, setMoodEnt
       if (data && data.length > 0) {
         setSummary(data[0].summary || "No summary available for today.");
         if (data[0].tips) {
-          setTips(data[0].tips.split('\n').filter(t => t.trim() !== ''));
+          setTips(data[0].tips.split('\n').filter((t: string) => t.trim() !== ''));
         }
       } else {
         setSummary("No summary available for today.");
@@ -97,7 +97,7 @@ const MoodSummarizer: React.FC<MoodSummarizerProps> = ({ moodEntries, setMoodEnt
             >
               <h2>Personalized Tips</h2>
               <ul>
-                {tips.map((tip, index) => (
+                {tips.map((tip: string, index) => (
                   <li key={index}>{tip}</li>
                 ))}
               </ul>
