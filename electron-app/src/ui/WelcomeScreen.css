@@ -1,0 +1,364 @@
+.welcome-container {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow-x: hidden;
+    overflow-y: auto;
+    background: linear-gradient(135deg, #340647 0%, #43075a 30%, #2b084e 70%, #370c6b 100%);
+    padding: 1rem;
+    box-sizing: border-box;
+}
+
+.animated-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+    z-index: 0;
+}
+
+.gradient-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(100px);
+    opacity: 0.7;
+    animation: float 20s infinite ease-in-out;
+}
+
+.orb-1 {
+    width: 250px;
+    height: 250px;
+    background: radial-gradient(circle, rgba(147,112,219,0.6) 0%, rgba(138,43,226,0.4) 50%, transparent 100%);
+    top: -125px;
+    left: -125px;
+    animation-delay: 0s;
+}
+
+.orb-2 {
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(186,85,211,0.5) 0%, rgba(148,0,211,0.3) 50%, transparent 100%);
+    bottom: -150px;
+    right: -150px;
+    animation-delay: -10s;
+}
+
+.orb-3 {
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(218,112,214,0.6) 0%, rgba(199,21,133,0.4) 50%, transparent 100%);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    animation-delay: -5s;
+}
+
+@keyframes float {
+    0%, 100% { transform: translate(0px, 0px) rotate(0deg); }
+    33% { transform: translate(30px, -30px) rotate(120deg); }
+    66% { transform: translate(-20px, 20px) rotate(240deg); }
+}
+
+.floating-elements {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.floating-element {
+    position: absolute;
+    font-size: 1.5rem;
+    opacity: 0.8;
+}
+
+.element-1 { left: 10%; }
+.element-2 { left: 20%; }
+.element-3 { left: 30%; }
+.element-4 { left: 40%; }
+.element-5 { right: 30%; }
+.element-6 { right: 20%; }
+.element-7 { right: 10%; }
+.element-8 { left: 50%; }
+
+.welcome-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    max-width: 550px;
+    width: 100%;
+    margin: 1rem auto;
+    padding: 0 1rem;
+    box-sizing: border-box;
+}
+
+.greeting {
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.5px;
+}
+
+.welcome-title {
+    font-size: clamp(2rem, 4vw, 2.8rem);
+    font-weight: 800;
+    color: white;
+    margin-bottom: 1rem;
+    line-height: 1.2;
+    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.user-name {
+    background: linear-gradient(45deg, #ff6b6b, #ffd93d, #6bcf7f, #4ecdc4, #45b7d1, #96ceb4, #feca57);
+    background-size: 300% 300%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: rainbowShift 3s ease-in-out infinite;
+}
+
+@keyframes rainbowShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+.wave-emoji {
+    display: inline-block;
+    margin-left: 0.5rem;
+    font-size: 0.9em;
+}
+
+.decorative-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 1rem auto;
+    gap: 1rem;
+}
+
+.divider-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, #da70d6, #dda0dd);
+    animation: pulse 2s infinite;
+}
+
+.divider-line {
+    height: 2px;
+    width: 60px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(1.2); }
+}
+
+.welcome-description {
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.5;
+    margin-bottom: 2rem;
+    font-weight: 400;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.8rem;
+    justify-content: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.primary-btn, .secondary-btn {
+    position: relative;
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.primary-btn {
+    background: linear-gradient(135deg, #9b59b6, #8e44ad);
+    color: white;
+    box-shadow: 0 8px 25px rgba(139, 69, 199, 0.4);
+}
+
+.secondary-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(10px);
+}
+
+.btn-shine {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    transition: left 0.6s ease;
+}
+
+.primary-btn:hover .btn-shine {
+    left: 100%;
+}
+
+.btn-icon {
+    font-size: 1.2rem;
+}
+
+.affirmation-container {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.affirmation-label {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 500;
+}
+
+.affirmation-text {
+    font-size: 1.1rem;
+    color: white;
+    font-weight: 500;
+    line-height: 1.4;
+    margin-bottom: 1rem;
+    min-height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.affirmation-progress {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.progress-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.progress-dot.active {
+    background: white;
+    transform: scale(1.3);
+}
+
+.stats-preview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 0.8rem;
+    max-width: 450px;
+    margin: 0 auto;
+}
+
+.stat-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(15px);
+    border-radius: 12px;
+    padding: 1rem 0.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.stat-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.3rem;
+}
+
+.stat-label {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+@media (max-width: 768px) {
+    .welcome-container {
+    padding: 0.5rem;
+    min-height: 100vh;
+    }
+    
+    .welcome-content {
+    margin: 0.5rem auto;
+    padding: 0 0.5rem;
+    }
+    
+    .welcome-title {
+    font-size: clamp(1.8rem, 4vw, 2.2rem);
+    margin-bottom: 0.8rem;
+    }
+    
+    .action-buttons {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 1.5rem;
+    }
+    
+    .primary-btn, .secondary-btn {
+    width: 100%;
+    max-width: 250px;
+    padding: 0.7rem 1.2rem;
+    font-size: 0.95rem;
+    }
+    
+    .affirmation-container {
+    padding: 1.2rem;
+    margin-bottom: 1.2rem;
+    }
+    
+    .affirmation-text {
+    font-size: 1rem;
+    min-height: 2rem;
+    }
+    
+    .stats-preview {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.6rem;
+    max-width: 100%;
+    }
+    
+    .stat-card {
+    padding: 0.8rem 0.5rem;
+    }
+    
+    .stat-icon {
+    font-size: 1.3rem;
+    }
+    
+    .stat-label {
+    font-size: 0.7rem;
+    }
+}

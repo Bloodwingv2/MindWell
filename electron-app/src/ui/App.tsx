@@ -5,6 +5,7 @@ import MemoryLane from './MemoryLane';
 import Settings from './settings'; // Import Settings
 import Notification from './Notification';
 import './Notification.css';
+import WelcomeScreen from './WelcomeScreen';
 
 import ISAClogo from '../assets/MindWell.png'
 import sentbtn from '../assets/send-svgrepo-com.svg'
@@ -69,18 +70,7 @@ const trackers: Tracker[] = [
    },
 ];
 
-const affirmations: string[] = [
-  "I am worthy of love and happiness.",
-  "I am in control of my emotions and my reactions.",
-  "I am resilient and can overcome any challenge.",
-  "I am grateful for all the good in my life.",
-  "I am capable of achieving my goals.",
-  "I am at peace with who I am.",
-  "I am strong, capable, and enough.",
-  "I choose joy and positivity.",
-  "I am surrounded by love and support.",
-  "I trust in my journey and my growth."
-];
+
 
 interface TerminalComponentProps {
   terminalRef: React.MutableRefObject<Terminal | null>;
@@ -135,7 +125,6 @@ function App() {
     const storedCompleted = localStorage.getItem('completedTrackers');
     return storedCompleted ? JSON.parse(storedCompleted) : [];
   });
-  const [currentAffirmation, setCurrentAffirmation] = useState('');
   const [moodEntries, setMoodEntries] = useState<{ mood: string; date: string }[]>([]);
   const [userName, setUserName] = useState('User');
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -178,17 +167,7 @@ function App() {
     }
   }, [selectedTracker]);
 
-  useEffect(() => {
-    const setRandomAffirmation = () => {
-      const randomIndex = Math.floor(Math.random() * affirmations.length);
-      setCurrentAffirmation(affirmations[randomIndex]);
-    };
-
-    setRandomAffirmation();
-    const intervalId = setInterval(setRandomAffirmation, 20000);
-
-    return () => clearInterval(intervalId);
-  }, []);
+  
 
   useEffect(() => {
     if (isTerminalReady && pendingTerminalMessages.length > 0) {
@@ -590,11 +569,7 @@ function App() {
             )}
           </div>
         ) : (
-          <div className="welcome-screen">
-            <h2>Hello {userName} 👋</h2>
-            <p>Select a tracker or tool from the sidebar to get started on your mental wellness journey.</p>
-            {currentAffirmation && <p className="affirmation">{currentAffirmation}</p>}
-          </div>
+          <WelcomeScreen userName={userName} setSelectedTracker={setSelectedTracker} trackers={trackers} />
         )}
       </div>
       {notification && (
