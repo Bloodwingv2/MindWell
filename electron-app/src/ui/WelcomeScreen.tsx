@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import './WelcomeScreen.css'
 
 interface Tracker {
   id: string;
