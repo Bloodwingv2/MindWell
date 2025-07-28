@@ -252,7 +252,7 @@ async def is_positive(question: str, language: str):
     """Improved positivity analysis with multilingual support and cached model"""
     language_name = get_language_name(language)
     positive_template = f"""Analyze the user's message in {language_name} and determine if it's a special positive memory worth remembering.
-Respond with 'special: <title>' if it is, 'yes' if it is just a positive memory and 'no' if none of the above. Do not provide any other text or explanation.
+Respond with 'special: <title>' in {language_name} if it is, 'yes' if it is just a positive memory and 'no' if none of the above. Do not provide any other text or explanation.
 
 User message: {{question}}
 Your response:
