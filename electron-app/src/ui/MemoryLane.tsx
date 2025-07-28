@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './MemoryLane.css';
 
 interface Memory {
@@ -7,6 +7,29 @@ interface Memory {
   memory: string;
   timestamp: string;
 }
+
+interface MemoryCardProps {
+  memory: Memory;
+  index: number;
+  onClick: (memory: Memory) => void;
+}
+
+const MemoryCard: React.FC<MemoryCardProps> = React.memo(({ memory, index, onClick }) => {
+  return (
+    <div 
+      className="memory-card"
+      style={{ animationDelay: `${index * 0.1}s` }}
+      onClick={() => onClick(memory)}
+    >
+      <div className="card-content">
+        <h3>{memory.title}</h3>
+        <p className="memory-date">{new Date(memory.timestamp).toLocaleDateString()}</p>
+        <p className="memory-text">{memory.memory}</p>
+      </div>
+      <div className="card-glow"></div>
+    </div>
+  );
+});
 
 const MemoryLane: React.FC = () => {
   const [memories, setMemories] = useState<Memory[]>([]);
@@ -121,19 +144,12 @@ const MemoryLane: React.FC = () => {
       
       <div className="memories-grid">
         {memories.map((memory, index) => (
-          <div 
+          <MemoryCard 
             key={memory.id} 
-            className="memory-card"
-            style={{ animationDelay: `${index * 0.1}s` }}
-            onClick={() => handleCardClick(memory)}
-          >
-            <div className="card-content">
-              <h3>{memory.title}</h3>
-              <p className="memory-date">{new Date(memory.timestamp).toLocaleDateString()}</p>
-              <p className="memory-text">{memory.memory}</p>
-            </div>
-            <div className="card-glow"></div>
-          </div>
+            memory={memory} 
+            index={index} 
+            onClick={handleCardClick} 
+          />
         ))}
       </div>
 

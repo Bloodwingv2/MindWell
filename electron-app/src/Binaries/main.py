@@ -50,27 +50,27 @@ _model_lock = asyncio.Lock()
 # Language code mapping
 LANGUAGE_NAMES = {
     'en': 'English',
-    'es': 'Spanish', 
+    'es': 'Spanish',
     'fr': 'French',
     'de': 'German',
-    'it': 'Italian',
-    'pt': 'Portuguese',
-    'ru': 'Russian',
+    'zh': 'Chinese (Simplified)',
     'ja': 'Japanese',
     'ko': 'Korean',
-    'zh': 'Chinese',
+    'pt': 'Portuguese',
+    'ru': 'Russian',
     'ar': 'Arabic',
     'hi': 'Hindi',
-    'bn': 'Bengali',
-    'ur': 'Urdu',
-    'te': 'Telugu',
-    'ta': 'Tamil',
-    'mr': 'Marathi',
-    'gu': 'Gujarati',
-    'kn': 'Kannada',
-    'ml': 'Malayalam',
-    'pa': 'Punjabi'
+    'it': 'Italian',
+    'nl': 'Dutch',
+    'sv': 'Swedish',
+    'tr': 'Turkish',
+    'pl': 'Polish',
+    'vi': 'Vietnamese',
+    'th': 'Thai',
+    'id': 'Indonesian',
+    'tl': 'Filipino (Tagalog)'
 }
+
 
 # --- Helper Functions ---
 async def get_model_instance(model_name: str = "gemma3n:e2b", streaming: bool = False, callbacks: list = None):
