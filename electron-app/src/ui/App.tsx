@@ -219,15 +219,7 @@ function App() {
     }
   };
 
-  const isTerminalOutput = (chunk: string): boolean => {
-    return chunk.includes("Model not found locally") || 
-           chunk.includes("pulling manifest") || 
-           chunk.includes("Download") ||
-           chunk.includes("verifying sha256") ||
-           chunk.includes("writing manifest") ||
-           chunk.includes("removing any unused layers") ||
-           chunk.includes("success");
-  };
+  
 
   const askGemma = async () => {
     if (!input.trim()) return;
@@ -297,86 +289,54 @@ function App() {
         for (const line of lines) {
           if (!line.trim()) continue;
           
-          try {
-            const jsonResponse = JSON.parse(line);
+          // Check for the "data: " prefix
+          if (line.startsWith('data: ')) {
+            const data = line.substring(6); // Remove "data: "
             
-            if (jsonResponse.status) {
-              if (jsonResponse.status.includes("Model not found locally") || 
-                  jsonResponse.status.includes("pulling manifest")) {
-                isModelDownloadPhase = true;
-                modelWasDownloaded = true;
-                setShowTerminal(true);
-                writeToTerminal(jsonResponse.status);
-              } else if (jsonResponse.status.includes("success")) {
-                downloadCompleted = true;
-                isModelDownloadPhase = false;
-                writeToTerminal(jsonResponse.status);
-                writeToTerminal('\nModel download completed. Returning to chat...');
-                
-                setTimeout(() => {
-                  setShowTerminal(false);
-                  setIsTerminalReady(false);
-                  window.location.reload();
-                }, 3000);
-                
-              } else if (isModelDownloadPhase) {
-                writeToTerminal(jsonResponse.status);
-              }
+            if (data === '[END]') {
+              break; // End of stream
             }
-            
-            if (jsonResponse.digest && isModelDownloadPhase) {
-              const progressMessage = `\r${jsonResponse.digest}: ${(jsonResponse.completed / jsonResponse.total * 100).toFixed(2)}%`;
-              writeToTerminal(progressMessage, true);
-            }
-            
-          } catch (e) {
-            const cleanChunk = line.trim();
-            if (!cleanChunk) continue;
-            
-            if (isTerminalOutput(cleanChunk)) {
-              if (cleanChunk.includes("Model not found locally")) {
-                isModelDownloadPhase = true;
-                modelWasDownloaded = true;
-                setShowTerminal(true);
-              }
-              if (isModelDownloadPhase) {
-                writeToTerminal(cleanChunk);
-                
-                if (cleanChunk.includes("success")) {
-                  downloadCompleted = true;
-                  isModelDownloadPhase = false;
-                  writeToTerminal('\nModel download completed. Returning to chat...');
-                  
-                  setTimeout(() => {
-                    setShowTerminal(false);
-                    setIsTerminalReady(false);
-                    window.location.reload();
-                  }, 3000);
-                }
-              }
+
+            // Handle model download messages
+            if (data.includes("Model not found locally") || data.includes("pulling manifest")) {
+              isModelDownloadPhase = true;
+              modelWasDownloaded = true;
+              setShowTerminal(true);
+              writeToTerminal(data);
+            } else if (data.includes("success") && isModelDownloadPhase) {
+              downloadCompleted = true;
+              isModelDownloadPhase = false;
+              writeToTerminal(data);
+              writeToTerminal('\nModel download completed. Returning to chat...');
+              setTimeout(() => {
+                setShowTerminal(false);
+                setIsTerminalReady(false);
+                window.location.reload();
+              }, 3000);
+            } else if (isModelDownloadPhase) {
+              // This handles other model download progress messages
+              writeToTerminal(data);
             } else {
-              if (!isModelDownloadPhase || downloadCompleted) {
-                botReply += cleanChunk;
-                
-                for (let i = 0; i < cleanChunk.length; i++) {
-                  await new Promise(resolve => setTimeout(resolve, 20));
-                  setMessages(prev => {
-                    const updated = [...prev];
-                    updated[assistantMessageIndex] = {
-                      ...updated[assistantMessageIndex],
-                      displayedContent: (updated[assistantMessageIndex].displayedContent || '') + cleanChunk[i],
-                      loading: false,
-                    };
-                    return updated;
-                  });
-                }
+              // This is a regular chat message token
+              botReply += data;
+              for (let i = 0; i < data.length; i++) {
+                await new Promise(resolve => setTimeout(resolve, 20));
+                setMessages(prev => {
+                  const updated = [...prev];
+                  updated[assistantMessageIndex] = {
+                    ...updated[assistantMessageIndex],
+                    displayedContent: (updated[assistantMessageIndex].displayedContent || '') + data[i],
+                    loading: false,
+                  };
+                  return updated;
+                });
               }
             }
           }
         }
       }
       
-      if (buffer.trim() && !isTerminalOutput(buffer.trim()) && (!isModelDownloadPhase || downloadCompleted)) {
+      if (buffer.trim() && !isModelDownloadPhase) {
         botReply += buffer.trim();
         setMessages(prev => {
           const updated = [...prev];

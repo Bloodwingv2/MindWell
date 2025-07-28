@@ -39,9 +39,12 @@ from titlecase import titlecase
 from langdetect import detect
 import langdetect
 
+# Context manager for lifespan events
+from contextlib import asynccontextmanager
+
 # --- Configuration ---
-# Global model instance for efficiency
-_global_model = None
+# Global model instances for efficiency - support both streaming and non-streaming
+_model_instances = {}  # Cache multiple models with different configurations
 _model_lock = asyncio.Lock()
 
 # Language code mapping
@@ -70,13 +73,28 @@ LANGUAGE_NAMES = {
 }
 
 # --- Helper Functions ---
-async def get_model_instance(model_name: str = "gemma3n:e2b"):
-    """Get or create a shared model instance for efficiency"""
-    global _global_model
+async def get_model_instance(model_name: str = "gemma3n:e2b", streaming: bool = False, callbacks: list = None):
+    """Get or create cached model instances for better performance"""
+    global _model_instances
+    
+    # Create unique cache key based on model name and streaming capability
+    cache_key = f"{model_name}_{streaming}"
+    
     async with _model_lock:
-        if _global_model is None or _global_model.model != model_name:
-            _global_model = OllamaLLM(model=model_name)
-        return _global_model
+        if cache_key not in _model_instances:
+            _model_instances[cache_key] = OllamaLLM(
+                model=model_name,
+                streaming=streaming
+            )
+            logging.info(f"Created new model instance: {cache_key}")
+        
+        model = _model_instances[cache_key]
+        
+        # Set callbacks if provided (for streaming)
+        if callbacks is not None:
+            model.callbacks = callbacks
+        
+        return model
 
 def detect_language(text: str) -> str:
     """Detect language of text with fallback to English"""
@@ -159,8 +177,22 @@ class CustomHandler(StreamingStdOutCallbackHandler):
                 logging.error(f"Streaming error: {e}")
                 break
 
+# --- Lifespan Event Handler ---
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    logging.info("Starting up FastAPI application")
+    yield
+    # Shutdown - Clean up model instances
+    global _model_instances
+    async with _model_lock:
+        _model_instances.clear()
+        logging.info("Cleared all model instances on shutdown")
+
 # --- FastAPI App Initialization ---
-app = FastAPI()
+app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -189,7 +221,7 @@ prompt = ChatPromptTemplate.from_template(template)
 
 # --- Analysis Functions (for background processing) ---
 async def analyze_and_log_mood(question: str, language: str):
-    """Improved mood analysis with multilingual support"""
+    """Improved mood analysis with multilingual support and cached model"""
     language_name = get_language_name(language)
     mood_template = f"""
 Analyze the user's emotional tone from the following message in {language_name} and respond with a single digit: 0 for happy, 1 for sad, or 2 for neutral. Do not provide any other text or explanation.
@@ -199,7 +231,8 @@ Your response:
 """
     mood_prompt = ChatPromptTemplate.from_template(mood_template)
     try:
-        model = await get_model_instance()
+        # Use cached non-streaming model instance
+        model = await get_model_instance("gemma3n:e2b", streaming=False)
         chain = mood_prompt | model
         result = await asyncio.to_thread(chain.invoke, {"question": question})
         
@@ -216,7 +249,7 @@ Your response:
         logging.error(f"Error during mood analysis: {str(e)}")
 
 async def is_positive(question: str, language: str):
-    """Improved positivity analysis with multilingual support"""
+    """Improved positivity analysis with multilingual support and cached model"""
     language_name = get_language_name(language)
     positive_template = f"""Analyze the user's message in {language_name} and determine if it's a special positive memory worth remembering.
 Respond with 'special: <title>' if it is, 'yes' if it is just a positive memory and 'no' if none of the above. Do not provide any other text or explanation.
@@ -226,7 +259,8 @@ Your response:
 """
     positive_prompt = ChatPromptTemplate.from_template(positive_template)
     try:
-        model = await get_model_instance()
+        # Use cached non-streaming model instance
+        model = await get_model_instance("gemma3n:e2b", streaming=False)
         chain = positive_prompt | model
         result = await asyncio.to_thread(chain.invoke, {"question": question})
         return str(result).strip().lower()
@@ -273,6 +307,13 @@ async def download_model_background(model_name, handler):
             await handler.queue.put(formatted_output + "\n")
                 
         await process.wait()
+        
+        # Clear cached instances after model download to force reload
+        global _model_instances
+        async with _model_lock:
+            _model_instances.clear()
+            logging.info("Cleared model cache after download")
+            
     except Exception as e:
         await handler.queue.put(f"Download error: {str(e)}\n")
 
@@ -291,7 +332,7 @@ async def check_model():
         return ""
 
 async def is_valid(question: str, language: str):
-    """Improved validity check with multilingual support"""
+    """Improved validity check with multilingual support and cached model"""
     language_name = get_language_name(language)
     valid_prompt = ChatPromptTemplate.from_template(f"""
 You are a memory filter AI. Analyze the user's message in {language_name}.
@@ -304,7 +345,8 @@ value: <summarized version of the message, clearly expressed as a fact>
 User message: {{question}}
 """)
     try:
-        model = await get_model_instance()
+        # Use cached non-streaming model instance
+        model = await get_model_instance("gemma3n:e2b", streaming=False)
         chain = valid_prompt | model
         result = await asyncio.to_thread(chain.invoke, {"question": question})
         
@@ -321,7 +363,7 @@ User message: {{question}}
         return False, "", ""
 
 async def today_generate(conversation_context: str, language: str):
-    """Improved daily summary generation with multilingual support"""
+    """Improved daily summary generation with multilingual support and cached model"""
     today_str = datetime.now().strftime("%Y-%m-%d")
     language_name = get_language_name(language)
     
@@ -355,7 +397,8 @@ Context (if any): {{existing_context}}
 Conversation: {{conversation_context}}
 """)
         
-        model = await get_model_instance()
+        # Use cached non-streaming model instance
+        model = await get_model_instance("gemma3n:e2b", streaming=False)
         chain = prompt_template | model
         result = await asyncio.to_thread(chain.invoke, {
             "existing_context": existing_context, 
@@ -387,7 +430,9 @@ async def query_stream(request: Request):
     language_name = get_language_name(parsed.language)
     
     handler = CustomHandler()
-    model = OllamaLLM(model=parsed.model, streaming=True, callbacks=[handler])
+    
+    # Use cached streaming model instance with handler
+    model = await get_model_instance(parsed.model, streaming=True, callbacks=[handler])
     chain = prompt | model
 
     async def run_chain_and_save():
@@ -438,7 +483,7 @@ async def query_stream(request: Request):
 
 @app.post("/process_conversations")
 async def process_conversations():
-    """Improved conversation processing with language detection"""
+    """Improved conversation processing with language detection and cached models"""
     try:
         conversations = get_unread_buffer()
 
@@ -486,7 +531,7 @@ async def process_conversations():
         return JSONResponse(content={"error": str(e)}, status_code=500)
 
 async def process_message_positivity(question: str, language: str):
-    """Helper function to process message positivity"""
+    """Helper function to process message positivity with cached model"""
     try:
         result = await is_positive(question, language)
         validity, mem_type, value = await is_valid(question, language)
