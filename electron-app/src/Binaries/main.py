@@ -71,6 +71,9 @@ LANGUAGE_NAMES = {
     'tl': 'Filipino (Tagalog)'
 }
 
+# Add this near the top with other global variables
+DEFAULT_LANGUAGE = 'en'  # Default fallback
+
 
 # --- Helper Functions ---
 async def get_model_instance(model_name: str = "gemma3n:e2b", streaming: bool = False, callbacks: list = None):
@@ -483,48 +486,51 @@ async def query_stream(request: Request):
 
 @app.post("/process_conversations")
 async def process_conversations():
-    """Improved conversation processing with language detection and cached models"""
+    """Process conversations using the default language setting"""
     try:
         conversations = get_unread_buffer()
 
         if not conversations:
             return JSONResponse(content={"message": "Buffer is empty."}, status_code=200)
 
+        # Get default language for all processing
+        default_lang = get_default_language()
+        language_name = get_language_name(default_lang)
+        
         user_messages = [conv for conv in conversations if conv.get("sender") == "user"]
         message_ids_to_delete = [conv["id"] for conv in conversations]
 
-        # Process each user message with language detection
+        # Process each user message with default language
         tasks = []
         for conv in user_messages:
             question = conv.get("message")
             if not question:
                 continue
             
-            # Detect language for each message
-            detected_lang = detect_language(question)
-            
-            # Create concurrent tasks for analysis
+            # Use default language for all analysis
             tasks.extend([
-                analyze_and_log_mood(question, detected_lang),
-                process_message_positivity(question, detected_lang)
+                analyze_and_log_mood(question, default_lang),
+                process_message_positivity(question, default_lang)
             ])
 
         # Run all analysis tasks concurrently
         if tasks:
             await asyncio.gather(*tasks, return_exceptions=True)
 
-        # Generate daily summary with language detection
+        # Generate daily summary with default language
         if conversations:
             conversation_context = "\n".join([f'{conv["sender"]}: {conv["message"]}' for conv in conversations])
-            # Use language from the last user message for summary
-            last_user_lang = detect_language(user_messages[-1]["message"]) if user_messages else 'en'
-            await today_generate(conversation_context, last_user_lang)
+            await today_generate(conversation_context, default_lang)
 
         # Delete processed messages
         if message_ids_to_delete:
             delete_processed_buffer(message_ids_to_delete)
 
-        return JSONResponse(content={"message": f"Successfully processed {len(user_messages)} user messages."})
+        return JSONResponse(
+            content={
+                "message": f"Successfully processed {len(user_messages)} user messages in {language_name}."
+            }
+        )
 
     except Exception as e:
         logging.error(f"Error processing buffer: {e}")
@@ -689,6 +695,32 @@ async def view_buffer():
         logging.error(f"Error viewing buffer: {e}")
         return JSONResponse(
             content={"error": f"Failed to view buffer: {str(e)}"}, 
+            status_code=500
+        )
+
+# Add this function with other helper functions
+def get_default_language():
+    """Get the currently set default language"""
+    global DEFAULT_LANGUAGE
+    return DEFAULT_LANGUAGE
+
+# Update the settings endpoint to store the language
+@app.post("/update_settings")
+async def update_settings(request: Request):
+    """Update user settings"""
+    try:
+        data = await request.json()
+        global DEFAULT_LANGUAGE
+        DEFAULT_LANGUAGE = data.get('defaultlang', 'en')
+        
+        return JSONResponse(
+            content={"message": "Settings updated successfully"},
+            status_code=200
+        )
+    except Exception as e:
+        logging.error(f"Error updating settings: {e}")
+        return JSONResponse(
+            content={"error": f"Failed to update settings: {str(e)}"}, 
             status_code=500
         )
 

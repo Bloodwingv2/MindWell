@@ -7,8 +7,36 @@ interface SettingsProps {
   showNotification: (message: string, type: 'success' | 'error') => void;
 }
 
+// Add these language options at the top of the file
+const LANGUAGE_OPTIONS = {
+  'en': 'English',
+  'es': 'Spanish',
+  'fr': 'French',
+  'de': 'German',
+  'zh': 'Chinese (Simplified)',
+  'ja': 'Japanese',
+  'ko': 'Korean',
+  'pt': 'Portuguese',
+  'ru': 'Russian',
+  'ar': 'Arabic',
+  'hi': 'Hindi',
+  'it': 'Italian',
+  'nl': 'Dutch',
+  'sv': 'Swedish',
+  'tr': 'Turkish',
+  'pl': 'Polish',
+  'vi': 'Vietnamese',
+  'th': 'Thai',
+  'id': 'Indonesian',
+  'tl': 'Filipino (Tagalog)'
+};
+
 const Settings: React.FC<SettingsProps> = ({ userName, setUserName, showNotification }) => {
   const [localUserName, setLocalUserName] = useState(userName);
+  const [defaultLanguage, setDefaultLanguage] = useState(() => 
+    localStorage.getItem('defaultLanguage') || 'en'
+  );
+
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setLocalUserName(e.target.value);
   };
@@ -60,6 +88,30 @@ const Settings: React.FC<SettingsProps> = ({ userName, setUserName, showNotifica
     }
   };
 
+  const handleLanguageChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newLang = e.target.value;
+    setDefaultLanguage(newLang);
+    localStorage.setItem('defaultLanguage', newLang);
+    
+    try {
+      const response = await fetch('http://localhost:8000/update_settings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ defaultlang: newLang }),
+      });
+
+      if (response.ok) {
+        showNotification('Default language updated successfully', 'success');
+      } else {
+        throw new Error('Failed to update default language');
+      }
+    } catch (error) {
+      showNotification('Failed to update default language', 'error');
+    }
+  };
+
   return (
     <div className="settings-container">
       <div className="settings-header">
@@ -80,7 +132,22 @@ const Settings: React.FC<SettingsProps> = ({ userName, setUserName, showNotifica
             />
           </div>
         </div>
-
+        <div className="settings-card">
+          <h3>Default Language</h3>
+          <div className="setting-item">
+            <select 
+              value={defaultLanguage}
+              onChange={handleLanguageChange}
+              className="language-dropdown"
+            >
+              {Object.entries(LANGUAGE_OPTIONS).map(([code, name]) => (
+                <option key={code} value={code}>
+                  {name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
         <div className="settings-card">
           <h3>Data Management</h3>
           <div className="setting-item">
