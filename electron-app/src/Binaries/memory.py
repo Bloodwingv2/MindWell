@@ -75,25 +75,34 @@ def upsert_today_summary(date: str, summary: str, tips: str):
 
 # Alternative version with message separation
 def add_to_buffer(sender: str, message: str):
-    """Consolidates all messages into a single entry per sender with a message counter."""
+    """Accumulates messages in the buffer while maintaining conversation order."""
     conn = sqlite3.connect(MEMORY_DB)
     cursor = conn.cursor()
     timestamp = datetime.now().isoformat()
     
     try:
-        # Delete all older unread entries for this sender
+        # Check for existing unread message from this sender
         cursor.execute(
-            "DELETE FROM conversation_buffer WHERE sender = ? AND status = 'unread'",
+            "SELECT id, message FROM conversation_buffer WHERE sender = ? AND status = 'unread' ORDER BY timestamp DESC LIMIT 1",
             (sender,)
         )
+        existing = cursor.fetchone()
         
-        # Add new entry
-        cursor.execute(
-            """INSERT INTO conversation_buffer 
-               (timestamp, sender, message, status) 
-               VALUES (?, ?, ?, 'unread')""",
-            (timestamp, sender, message)
-        )
+        if existing:
+            # Append to existing message with separator
+            updated_message = f"{existing[1]}\n---\n{message}"
+            cursor.execute(
+                "UPDATE conversation_buffer SET message = ?, timestamp = ? WHERE id = ?",
+                (updated_message, timestamp, existing[0])
+            )
+        else:
+            # Add new entry
+            cursor.execute(
+                """INSERT INTO conversation_buffer 
+                   (timestamp, sender, message, status) 
+                   VALUES (?, ?, ?, 'unread')""",
+                (timestamp, sender, message)
+            )
         conn.commit()
     finally:
         conn.close()
