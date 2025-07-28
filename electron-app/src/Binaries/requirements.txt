@@ -45,3 +45,4 @@ pyinstaller-hooks-contrib
 pywin32-ctypes
 jsonpatch
 jsonpointer
+langdetect

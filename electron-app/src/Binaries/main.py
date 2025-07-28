@@ -2,16 +2,15 @@
 from langchain_ollama import OllamaLLM
 from langchain_core.prompts import ChatPromptTemplate
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
-#from Binaries.xtts import synthesis
 
 # Importing necessary libraries for LLM and FastAPI
-from fastapi import FastAPI, Request # FastApi Libraries for Inference
+from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse
 import pandas as pd
 import io
-from pydantic import BaseModel # Importing necessary libraries for FastApi
-from fastapi.responses import StreamingResponse # importing StreamingResponse from FastAPi
-from fastapi.responses import JSONResponse # Importing JSONResponse for returning JSON data
+from pydantic import BaseModel
+from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse
 import asyncio
 from fastapi.middleware.cors import CORSMiddleware
 import logging
@@ -21,8 +20,7 @@ import subprocess
 import os
 import re
 from memory import init_db
-import sqlite3 # Importing sqlite3 for database operations
-
+import sqlite3
 
 # Mood imports to log for graphs
 import json
@@ -37,33 +35,87 @@ from memory import (
 # Import string formatters
 from titlecase import titlecase
 
+# Language detection
+from langdetect import detect
+import langdetect
 
 # --- Configuration ---
-# CONVERSATION_BUFFER_FILE = "conversation_buffer.json" # No longer needed
+# Global model instance for efficiency
+_global_model = None
+_model_lock = asyncio.Lock()
+
+# Language code mapping
+LANGUAGE_NAMES = {
+    'en': 'English',
+    'es': 'Spanish', 
+    'fr': 'French',
+    'de': 'German',
+    'it': 'Italian',
+    'pt': 'Portuguese',
+    'ru': 'Russian',
+    'ja': 'Japanese',
+    'ko': 'Korean',
+    'zh': 'Chinese',
+    'ar': 'Arabic',
+    'hi': 'Hindi',
+    'bn': 'Bengali',
+    'ur': 'Urdu',
+    'te': 'Telugu',
+    'ta': 'Tamil',
+    'mr': 'Marathi',
+    'gu': 'Gujarati',
+    'kn': 'Kannada',
+    'ml': 'Malayalam',
+    'pa': 'Punjabi'
+}
 
 # --- Helper Functions ---
+async def get_model_instance(model_name: str = "gemma3n:e2b"):
+    """Get or create a shared model instance for efficiency"""
+    global _global_model
+    async with _model_lock:
+        if _global_model is None or _global_model.model != model_name:
+            _global_model = OllamaLLM(model=model_name)
+        return _global_model
+
+def detect_language(text: str) -> str:
+    """Detect language of text with fallback to English"""
+    try:
+        detected = detect(text)
+        return detected if detected in LANGUAGE_NAMES else 'en'
+    except (langdetect.lang_detect_exception.LangDetectException, Exception):
+        return 'en'
+
+def get_language_name(code: str) -> str:
+    """Get full language name from code"""
+    return LANGUAGE_NAMES.get(code, 'English')
+
 async def log_mood(mood: int):
+    """Log mood with better error handling"""
     entry = {"mood": mood, "timestamp": datetime.now().isoformat()}
     try:
-        with open("mood_log.json", "r+") as f:
-            data = json.load(f)
-            data.append(entry)
-            f.seek(0)
-            json.dump(data, f, indent=4)
-    except (FileNotFoundError, json.JSONDecodeError):
-        with open("mood_log.json", "w") as f:
-            json.dump([entry], f, indent=4)
+        if os.path.exists("mood_log.json"):
+            with open("mood_log.json", "r+", encoding='utf-8') as f:
+                try:
+                    data = json.load(f)
+                except json.JSONDecodeError:
+                    data = []
+                data.append(entry)
+                f.seek(0)
+                f.truncate()
+                json.dump(data, f, indent=4, ensure_ascii=False)
+        else:
+            with open("mood_log.json", "w", encoding='utf-8') as f:
+                json.dump([entry], f, indent=4, ensure_ascii=False)
+    except Exception as e:
+        logging.error(f"Error logging mood: {e}")
 
-# This function is replaced by add_to_buffer from memory.py
-# async def save_to_buffer(question: str, response: str):
-#     ...
-
-class QueryRequest(BaseModel): # Request structure for FastAPI
+class QueryRequest(BaseModel):
     question: str
     userName: str = "User"
     context: str = ""
-    model: str = "gemma3n:e2b"  # Default model with fallback
-    language: str = "en" # Default to English
+    model: str = "gemma3n:e2b"
+    language: str = ""  # Auto-detect if empty
     
 class MoodRequest(BaseModel):
     graph: int
@@ -82,23 +134,30 @@ class MemoryDeleteRequest(BaseModel):
     id: int
     table: str
 
-class customhandler(StreamingStdOutCallbackHandler):
+class CustomHandler(StreamingStdOutCallbackHandler):
     def __init__(self):
         self.buffer = ""
         super().__init__()
-        self.queue = asyncio.Queue() # Initializing an asyncio queue to handle tokens
+        self.queue = asyncio.Queue()
+        self._finished = False
 
-    async def on_llm_new_token(self, token: str, **kwargs)-> None:
-        print(token, end= "", flush=True)
+    async def on_llm_new_token(self, token: str, **kwargs) -> None:
         self.buffer += token
-        await self.queue.put(token) # Adding Token to the queue for FastApi Processing
+        await self.queue.put(token)
             
     async def token_stream(self):
         while True:
-            token = await self.queue.get()
-            if token == "[END]":
+            try:
+                token = await asyncio.wait_for(self.queue.get(), timeout=30.0)
+                if token == "[END]":
+                    break
+                # Fix UTF-8 encoding for streaming
+                yield f"data: {token}\n\n".encode("utf-8")
+            except asyncio.TimeoutError:
                 break
-            yield token.encode("utf-8")
+            except Exception as e:
+                logging.error(f"Streaming error: {e}")
+                break
 
 # --- FastAPI App Initialization ---
 app = FastAPI()
@@ -113,7 +172,9 @@ app.add_middleware(
 
 # --- Prompt Templates ---
 template = """
-You are Mindwell, a positive, friendly, and knowledgeable AI assistant created by Mirang Bhandari (a male human). Your purpose is to support and uplift the user at all times, especially during tough situations. Always highlight the positive side and reassure the user, no matter how bad things seem. Be helpful, kind, and encouraging in every response. Respond in {language} language.
+You are Mindwell, a positive, friendly, and knowledgeable AI assistant created by Mirang Bhandari (a male human). Your purpose is to support and uplift the user at all times, especially during tough situations. Always highlight the positive side and reassure the user, no matter how bad things seem. Be helpful, kind, and encouraging in every response.
+
+The user is communicating in {language_name} (language code: {language}). Your response **must** be in {language_name}.
 
 Use the conversation history **only if** the user appears sad, frustrated, anxious, or emotionally down. If the message is neutral or positive, **ignore the context completely**.
 
@@ -122,107 +183,136 @@ Please keep the responses concise and to the point, while still being supportive
 Conversation history: {context}
 User message: {question}
 
-Your reply:
+Your reply (in {language_name}):
 """
 prompt = ChatPromptTemplate.from_template(template)
 
 # --- Analysis Functions (for background processing) ---
-async def analyze_and_log_mood(question: str, model: OllamaLLM):
-    mood_template = """
-Analyze the user's emotional tone from the following message and respond with a single digit: 0 for happy, 1 for sad, or 2 for neutral. Do not provide any other text or explanation.
-User message: {question}
+async def analyze_and_log_mood(question: str, language: str):
+    """Improved mood analysis with multilingual support"""
+    language_name = get_language_name(language)
+    mood_template = f"""
+Analyze the user's emotional tone from the following message in {language_name} and respond with a single digit: 0 for happy, 1 for sad, or 2 for neutral. Do not provide any other text or explanation.
+
+User message: {{question}}
 Your response:
 """
     mood_prompt = ChatPromptTemplate.from_template(mood_template)
     try:
+        model = await get_model_instance()
         chain = mood_prompt | model
         result = await asyncio.to_thread(chain.invoke, {"question": question})
-        mood_str = result.strip()
-        if mood_str in ["0", "1", "2"]:
-            await log_mood(int(mood_str))
+        
+        # More robust parsing
+        mood_str = str(result).strip()
+        # Extract only digits
+        digits = re.findall(r'\d', mood_str)
+        if digits and digits[0] in ["0", "1", "2"]:
+            await log_mood(int(digits[0]))
+            logging.info(f"Mood logged: {digits[0]} for language: {language_name}")
+        else:
+            logging.warning(f"Invalid mood result: {mood_str}")
     except Exception as e:
         logging.error(f"Error during mood analysis: {str(e)}")
 
-async def is_positive(question: str, model: OllamaLLM):
-    positive_template = """Analyze the user's message and determine if it's a special positive memory worth remembering.
+async def is_positive(question: str, language: str):
+    """Improved positivity analysis with multilingual support"""
+    language_name = get_language_name(language)
+    positive_template = f"""Analyze the user's message in {language_name} and determine if it's a special positive memory worth remembering.
 Respond with 'special: <title>' if it is, 'yes' if it is just a positive memory and 'no' if none of the above. Do not provide any other text or explanation.
-User message: {question}
+
+User message: {{question}}
 Your response:
 """
     positive_prompt = ChatPromptTemplate.from_template(positive_template)
     try:
+        model = await get_model_instance()
         chain = positive_prompt | model
         result = await asyncio.to_thread(chain.invoke, {"question": question})
-        return result.strip().lower()
+        return str(result).strip().lower()
     except Exception as e:
         logging.error(f"Error during positivity analysis: {str(e)}")
         return "no"
 
-
 async def download_model_background(model_name, handler):
-    
-    process = await asyncio.create_subprocess_exec(
-        "ollama", "pull", model_name,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.STDOUT
-    )
-
-    progress_pattern = re.compile(r"(\w+):\s+(\d+)%|(\w+)\s+([\d.]+)\s+(\w+)/([\d.]+)\s+(\w+)\s+\((.+)\)")
-
-    while True:
-        line = await process.stdout.readline()
-        if not line:
-            break
-        decoded = line.decode("utf-8", errors="replace").strip()
-        
-        match = progress_pattern.match(decoded)
-        if match:
-            if match.group(1) and match.group(2):  # e.g., "downloading: 10%"
-                status = match.group(1)
-                percentage = match.group(2)
-                formatted_output = f"Model download {status}: {percentage}%"
-            elif match.group(3) and match.group(4) and match.group(5) and match.group(6) and match.group(7) and match.group(8): # e.g., "verifying 1.2 GB/1.2 GB (overall 100%)"
-                status = match.group(3)
-                downloaded_size = match.group(4)
-                downloaded_unit = match.group(5)
-                total_size = match.group(6)
-                total_unit = match.group(7)
-                overall_progress = match.group(8)
-                formatted_output = f"Model {status}: {downloaded_size} {downloaded_unit}/{total_size} {total_unit} ({overall_progress})"
-            else:
-                formatted_output = decoded # Fallback to raw if no match
-        else:
-            formatted_output = decoded # Fallback to raw if no match
-
-        await handler.queue.put(formatted_output + "\n") # Add newline for better display
-
-                
-async def check_model():
-    proc = await asyncio.create_subprocess_exec(
-        "ollama", "list",
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE
-    )
-    stdout, stderr = await proc.communicate()
-    return stdout.decode().strip()
-
-async def is_valid(question: str, model: OllamaLLM):
-    valid_prompt = ChatPromptTemplate.from_template("""
-    You are a memory filter AI.
-    Your task is to determine if the user's message contains any factual, personal, or goal-related information that should be stored in memory.
-    Respond strictly in this format:
-    validity: true/false
-    type: <category like name, location, goal, preference>
-    value: <summarized version of the message, clearly expressed as a fact>
-    User message: {question}
-    """)
+    """Improved model download with better progress tracking"""
     try:
+        process = await asyncio.create_subprocess_exec(
+            "ollama", "pull", model_name,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.STDOUT
+        )
+
+        progress_pattern = re.compile(r"(\w+):\s+(\d+)%|(\w+)\s+([\d.]+)\s+(\w+)/([\d.]+)\s+(\w+)\s+\((.+)\)")
+
+        while True:
+            line = await process.stdout.readline()
+            if not line:
+                break
+            decoded = line.decode("utf-8", errors="replace").strip()
+            
+            match = progress_pattern.match(decoded)
+            if match:
+                if match.group(1) and match.group(2):
+                    status = match.group(1)
+                    percentage = match.group(2)
+                    formatted_output = f"Model download {status}: {percentage}%"
+                elif match.group(3) and match.group(4) and match.group(5) and match.group(6) and match.group(7) and match.group(8):
+                    status = match.group(3)
+                    downloaded_size = match.group(4)
+                    downloaded_unit = match.group(5)
+                    total_size = match.group(6)
+                    total_unit = match.group(7)
+                    overall_progress = match.group(8)
+                    formatted_output = f"Model {status}: {downloaded_size} {downloaded_unit}/{total_size} {total_unit} ({overall_progress})"
+                else:
+                    formatted_output = decoded
+            else:
+                formatted_output = decoded
+
+            await handler.queue.put(formatted_output + "\n")
+                
+        await process.wait()
+    except Exception as e:
+        await handler.queue.put(f"Download error: {str(e)}\n")
+
+async def check_model():
+    """Check available models"""
+    try:
+        proc = await asyncio.create_subprocess_exec(
+            "ollama", "list",
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
+        )
+        stdout, stderr = await proc.communicate()
+        return stdout.decode().strip()
+    except Exception as e:
+        logging.error(f"Error checking models: {e}")
+        return ""
+
+async def is_valid(question: str, language: str):
+    """Improved validity check with multilingual support"""
+    language_name = get_language_name(language)
+    valid_prompt = ChatPromptTemplate.from_template(f"""
+You are a memory filter AI. Analyze the user's message in {language_name}.
+Your task is to determine if the message contains any factual, personal, or goal-related information that should be stored in memory.
+Respond strictly in this format:
+validity: true/false
+type: <category like name, location, goal, preference>
+value: <summarized version of the message, clearly expressed as a fact>
+
+User message: {{question}}
+""")
+    try:
+        model = await get_model_instance()
         chain = valid_prompt | model
         result = await asyncio.to_thread(chain.invoke, {"question": question})
-        lines = result.strip().splitlines()
-        validity = "true" in (lines[0] if lines else "")
+        
+        lines = str(result).strip().splitlines()
+        validity = "true" in (lines[0] if lines else "").lower()
         mem_type = lines[1].split(":", 1)[-1].strip() if len(lines) > 1 else ""
         value = lines[2].split(":", 1)[-1].strip() if len(lines) > 2 else ""
+        
         if mem_type.lower() == 'name':
             return False, "", ""
         return validity, mem_type, value
@@ -230,10 +320,12 @@ async def is_valid(question: str, model: OllamaLLM):
         logging.error(f"[is_valid error] {e}")
         return False, "", ""
 
-async def today_generate(conversation_context: str, model: OllamaLLM):
+async def today_generate(conversation_context: str, language: str):
+    """Improved daily summary generation with multilingual support"""
     today_str = datetime.now().strftime("%Y-%m-%d")
+    language_name = get_language_name(language)
+    
     try:
-        # Check for existing summary to provide context
         existing_summary_data = get_today_summary(today_str)
         existing_context = ""
         if existing_summary_data:
@@ -241,43 +333,45 @@ async def today_generate(conversation_context: str, model: OllamaLLM):
             existing_tips = existing_summary_data.get("tips", "")
             existing_context = f"### Summary\n{existing_summary}\n\n### Tips\n{existing_tips}"
 
-        prompt_template = ChatPromptTemplate.from_template("""
-        You are a helpful, empathetic mental health assistant. Your task is to read the conversation and generate:
+        prompt_template = ChatPromptTemplate.from_template(f"""
+You are a helpful, empathetic mental health assistant. Your task is to read the conversation in {language_name} and generate:
 
-        1. A short, emotionally aware summary of the user's mental and emotional state.
-        2. Three actionable, supportive tips.
+1. A short, emotionally aware summary of the user's mental and emotional state in {language_name}.
+2. Three actionable, supportive tips in {language_name}.
 
-        You must reply strictly in the following format and say nothing else:
+You must reply strictly in the following format and say nothing else:
 
-        ### Summary
-        <Concise, emotionally intelligent summary here>
+### Summary
+<Concise, emotionally intelligent summary here in {language_name}>
 
-        ### Tips
-        - <Actionable, supportive tip 1>
-        - <Actionable, supportive tip 2>
-        - <Actionable, supportive tip 3>
+### Tips
+- <Actionable, supportive tip 1 in {language_name}>
+- <Actionable, supportive tip 2 in {language_name}>
+- <Actionable, supportive tip 3 in {language_name}>
 
-        Only return this format. Do not add explanations, prefaces, or confirmations.
+Only return this format. Do not add explanations, prefaces, or confirmations.
 
-        Context (if any): {existing_context}  
-        Conversation: {conversation_context}
-        """)
+Context (if any): {{existing_context}}  
+Conversation: {{conversation_context}}
+""")
         
+        model = await get_model_instance()
         chain = prompt_template | model
-        result = await asyncio.to_thread(chain.invoke, {"existing_context": existing_context, "conversation_context": conversation_context })
-        parts = result.strip().split("### Tips", maxsplit=1)
+        result = await asyncio.to_thread(chain.invoke, {
+            "existing_context": existing_context, 
+            "conversation_context": conversation_context,
+        })
+        
+        parts = str(result).strip().split("### Tips", maxsplit=1)
         summary_part = parts[0].replace("### Summary", "").strip() if len(parts) > 0 else ""
         tips_part = parts[1].strip() if len(parts) > 1 else ""
         
-        # Clean up the tips to be a simple newline-separated list
         tips_part = "\n".join([line.strip().lstrip("-*• ") for line in tips_part.splitlines() if line.strip()])
 
-        # Upsert the new summary into the database
         upsert_today_summary(today_str, summary_part, tips_part)
 
     except Exception as e:
         logging.error(f"[today_generate error] {e}")
-
 
 # --- API Endpoints ---
 
@@ -285,7 +379,14 @@ async def today_generate(conversation_context: str, model: OllamaLLM):
 async def query_stream(request: Request):
     data = await request.json()
     parsed = QueryRequest(**data)
-    handler = customhandler()
+    
+    # Auto-detect language if not provided
+    if not parsed.language:
+        parsed.language = detect_language(parsed.question)
+    
+    language_name = get_language_name(parsed.language)
+    
+    handler = CustomHandler()
     model = OllamaLLM(model=parsed.model, streaming=True, callbacks=[handler])
     chain = prompt | model
 
@@ -293,29 +394,26 @@ async def query_stream(request: Request):
         try:
             special_memories = get_relevant_special_memories(parsed.question)
             
-            # Combine all context sources
             context = f"User's Name: {parsed.userName}\n{parsed.context}"
             context += "\n".join([mem['memory'] for mem in special_memories])
             
             await asyncio.to_thread(chain.invoke, {
                 "context": context,
                 "question": parsed.question,
-                "language": parsed.language
+                "language": parsed.language,
+                "language_name": language_name
             })
 
-            # After generation, save to buffer
+            # Save to buffer
             add_to_buffer(sender='user', message=parsed.question)
             add_to_buffer(sender='assistant', message=handler.buffer)
                 
         except Exception as e:
-            # Main Code for Calling async functions
             logging.error(f"Chain invoke error: {str(e)}")
 
-            # Check if model exists locally
             model_list = await check_model()
-            logging.info(f"Installed models:\n{model_list}")
-
             model_names = [line.split()[0].lower() for line in model_list.splitlines()[1:] if line.strip()]
+            
             if parsed.model.lower() not in model_names:
                 await handler.queue.put("Model not found locally. Downloading the model, please wait...")
                 await download_model_background(parsed.model, handler)
@@ -326,42 +424,58 @@ async def query_stream(request: Request):
             await handler.queue.put("[END]")
 
     asyncio.create_task(run_chain_and_save())
-    return StreamingResponse(handler.token_stream(), media_type="text/plain")
+    
+    # Return SSE stream instead of plain text
+    return StreamingResponse(
+        handler.token_stream(), 
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "Content-Type": "text/event-stream; charset=utf-8"
+        }
+    )
 
 @app.post("/process_conversations")
 async def process_conversations():
+    """Improved conversation processing with language detection"""
     try:
         conversations = get_unread_buffer()
 
         if not conversations:
             return JSONResponse(content={"message": "Buffer is empty."}, status_code=200)
 
-        # Use the default model for analysis to conserve VRAM
-        analysis_model = OllamaLLM(model="gemma3n:e2b")
-
-        # We only want to process the user's messages from the buffer
         user_messages = [conv for conv in conversations if conv.get("sender") == "user"]
         message_ids_to_delete = [conv["id"] for conv in conversations]
 
+        # Process each user message with language detection
+        tasks = []
         for conv in user_messages:
             question = conv.get("message")
             if not question:
                 continue
             
-            await analyze_and_log_mood(question, analysis_model)
-            result = await is_positive(question, analysis_model)
+            # Detect language for each message
+            detected_lang = detect_language(question)
             
-            if result.startswith("special:"):
-                title = result.split(":", 1)[1].strip()
-                title = title.title()
-                add_special_memory(question, title)
-            
+            # Create concurrent tasks for analysis
+            tasks.extend([
+                analyze_and_log_mood(question, detected_lang),
+                process_message_positivity(question, detected_lang)
+            ])
 
-        # Generate the daily summary from the full conversation context
-        conversation_context = "\n".join([f'{conv["sender"]}: {conv["message"]}' for conv in conversations])
-        await today_generate(conversation_context, analysis_model)
+        # Run all analysis tasks concurrently
+        if tasks:
+            await asyncio.gather(*tasks, return_exceptions=True)
 
-        # Delete the processed messages from the buffer
+        # Generate daily summary with language detection
+        if conversations:
+            conversation_context = "\n".join([f'{conv["sender"]}: {conv["message"]}' for conv in conversations])
+            # Use language from the last user message for summary
+            last_user_lang = detect_language(user_messages[-1]["message"]) if user_messages else 'en'
+            await today_generate(conversation_context, last_user_lang)
+
+        # Delete processed messages
         if message_ids_to_delete:
             delete_processed_buffer(message_ids_to_delete)
 
@@ -370,6 +484,19 @@ async def process_conversations():
     except Exception as e:
         logging.error(f"Error processing buffer: {e}")
         return JSONResponse(content={"error": str(e)}, status_code=500)
+
+async def process_message_positivity(question: str, language: str):
+    """Helper function to process message positivity"""
+    try:
+        result = await is_positive(question, language)
+        validity, mem_type, value = await is_valid(question, language)
+        
+        if result.startswith("special:"):
+            title = result.split(":", 1)[1].strip()
+            title = title.title()
+            add_special_memory(question, title)
+    except Exception as e:
+        logging.error(f"Error processing message positivity: {e}")
 
 # --- Other Endpoints (Mood, Memory, etc.) ---
     
@@ -381,7 +508,7 @@ async def post_mood_data_json(data: MoodRequest):
 @app.get("/mood")
 async def get_mood_graph_value():
     try:
-        with open("mood_log.json", "r") as f:
+        with open("mood_log.json", "r", encoding='utf-8') as f:
             return JSONResponse(content=json.load(f))
     except (FileNotFoundError, json.JSONDecodeError):
         return JSONResponse(content=[])
@@ -389,13 +516,12 @@ async def get_mood_graph_value():
 @app.delete("/mood")
 async def clear_mood_log():
     try:
-        with open("mood_log.json", "w") as f:
-            json.dump([], f)
+        with open("mood_log.json", "w", encoding='utf-8') as f:
+            json.dump([], f, ensure_ascii=False)
         return JSONResponse(content={"message": "Mood log cleared successfully"}, status_code=200)
     except Exception as e:
         logging.error(f"Error clearing mood log: {e}")
         return JSONResponse(content={"error": "Failed to clear mood log"}, status_code=500)
-
 
 @app.get("/special_memory")
 async def get_special_memory():
@@ -447,7 +573,6 @@ async def export_data():
         cursor = conn.cursor()
 
         all_data = io.StringIO()
-
         tables = ["special_memories", "conversation_buffer", "daily_summaries"]
 
         for table_name in tables:
@@ -466,7 +591,7 @@ async def export_data():
 
         return StreamingResponse(
             io.BytesIO(all_data.getvalue().encode("utf-8")),
-            media_type="text/csv",
+            media_type="text/csv; charset=utf-8",
             headers={
                 "Content-Disposition": "attachment; filename=memory_export.csv"
             }
@@ -482,7 +607,6 @@ async def clear_data():
         db_path = os.path.join(os.path.dirname(__file__), "memory.db")
         if os.path.exists(db_path):
             os.remove(db_path)
-            init_db() # Re-initialize the database after deletion
             return JSONResponse(content={"message": "All data cleared successfully"}, status_code=200)
         else:
             return JSONResponse(content={"message": "Database file not found"}, status_code=404)
