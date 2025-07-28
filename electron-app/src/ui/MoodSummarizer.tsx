@@ -3,15 +3,14 @@ import { motion } from 'framer-motion';
 import './MoodSummarizer.css';
 
 interface MoodSummarizerProps {
-  moodEntries: { mood: string; date: string }[];
-  setMoodEntries: React.Dispatch<React.SetStateAction<{ mood: string; date: string }[]>>;
+  isProcessing: boolean;
+  setIsProcessing: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const MoodSummarizer: React.FC<MoodSummarizerProps> = () => {
+const MoodSummarizer: React.FC<MoodSummarizerProps> = ({ isProcessing, setIsProcessing }) => {
   const [summary, setSummary] = useState('');
   const [tips, setTips] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isProcessing, setIsProcessing] = useState(false);
 
   const fetchSummary = async () => {
     setIsLoading(true);

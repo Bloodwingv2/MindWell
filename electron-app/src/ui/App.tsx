@@ -125,7 +125,7 @@ function App() {
     const storedCompleted = localStorage.getItem('completedTrackers');
     return storedCompleted ? JSON.parse(storedCompleted) : [];
   });
-  const [moodEntries, setMoodEntries] = useState<{ mood: string; date: string }[]>([]);
+  const [isMoodProcessing, setIsMoodProcessing] = useState(false);
   const [userName, setUserName] = useState('User');
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
@@ -457,7 +457,7 @@ function App() {
           className="sidebar"
           initial={{ x: -260, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
         >
         <div className="upperside">
           <div className="uppersidetop">
@@ -477,7 +477,7 @@ function App() {
                     setVisitedTrackers(prev => [...prev, tracker.id]);
                   }
                 }}
-                whileHover={{ scale: 1.03, backgroundColor: 'rgba(6, 16, 102, 0.1)', color: '#ffffff' }}
+                whileHover={{ scale: 1.05, backgroundColor: 'rgba(6, 16, 102, 0.1)', color: '#ffffff' }}
                 whileTap={{ scale: 0.97 }}
                 variants={{
                   hidden: { opacity: 0, x: -20 },
@@ -485,7 +485,7 @@ function App() {
                 }}
                 initial="hidden"
                 animate="visible"
-                transition={{ duration: 0.3, delay: 0.1 + trackers.indexOf(tracker) * 0.05 }}
+                transition={{ type: "spring", stiffness: 400, damping: 25, delay: trackers.indexOf(tracker) * 0.03 }}
               >
                 <img src={tracker.icon} alt={`${tracker.title} icon`} className="tracker-icon" />
                 {tracker.title}
@@ -497,7 +497,7 @@ function App() {
           <motion.button
             className="queryBottom"
             onClick={() => {setSelectedTracker(null); setShowSettings(false)}}
-            whileHover={{ scale: 1.03, backgroundColor: 'rgba(255, 255, 255, 0.1)', color: '#ffffff' }}
+            whileHover={{ scale: 1.05, backgroundColor: 'rgba(255, 255, 255, 0.1)', color: '#ffffff' }}
             whileTap={{ scale: 0.97 }}
             variants={{
               hidden: { opacity: 0, x: -20 },
@@ -505,14 +505,14 @@ function App() {
             }}
             initial="hidden"
             animate="visible"
-            transition={{ duration: 0.3, delay: 0.1 + trackers.length * 0.05 }}
+            transition={{ type: "spring", stiffness: 400, damping: 25, delay: trackers.length * 0.03 }}
           >
             <img src={homeicon} alt="" className = "Homeicon" />Home
           </motion.button>
           <motion.button
             className="queryBottom"
             onClick={() => {setSelectedTracker(null); setShowSettings(true)}}
-            whileHover={{ scale: 1.03, backgroundColor: 'rgba(255, 255, 255, 0.1)', color: '#ffffff' }}
+            whileHover={{ scale: 1.05, backgroundColor: 'rgba(255, 255, 255, 0.1)', color: '#ffffff' }}
             whileTap={{ scale: 0.97 }}
             variants={{
               hidden: { opacity: 0, x: -20 },
@@ -520,7 +520,7 @@ function App() {
             }}
             initial="hidden"
             animate="visible"
-            transition={{ duration: 0.3, delay: 0.1 + (trackers.length + 1) * 0.05 }}
+            transition={{ type: "spring", stiffness: 400, damping: 25, delay: (trackers.length + 1) * 0.03 }}
           >
             <img src={settingsicon} alt="" className = "SettingsIcon"/>Settings
           </motion.button>
@@ -534,7 +534,7 @@ function App() {
         ) : selectedTracker ? (
           <div className="tracker-content-area">
             {selectedTracker.id === 'mood-summarizer' ? (
-              <MoodSummarizer moodEntries={moodEntries} setMoodEntries={setMoodEntries} />
+              <MoodSummarizer isProcessing={isMoodProcessing} setIsProcessing={setIsMoodProcessing} />
             ) : selectedTracker.id === 'wellness-tracker' ? (
               <WellnessTracker />
             ) : selectedTracker.id === 'memory-lane' ? (
@@ -552,7 +552,7 @@ function App() {
                       className={`message-container ${message.role}`}
                       initial={{ opacity: 0, y: 20, scale: 0.8 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
-                      transition={{ type: "spring", stiffness: 300, damping: 20, duration: 0.5 }}
+                      transition={{ type: "spring", stiffness: 500, damping: 30, duration: 0.3 }}
                     >
                       <div className="message-content">
                         {message.role === 'assistant' && message.loading && !message.displayedContent ? (
@@ -583,11 +583,11 @@ function App() {
                             onChange={(e) => setSelectedLanguage(e.target.value)}
                         >
                             <option value="en">English</option>
-                            <option value="es">Japanese</option>
-                            <option value="fr">German</option>
-                            <option value="de">Korean</option>
-                            <option value="bn">Spanish</option>
-                            <option value="mr">French</option>
+                            <option value="ja">Japanese</option>
+                            <option value="de">German</option>
+                            <option value="ko">Korean</option>
+                            <option value="es">Spanish</option>
+                            <option value="fr">French</option>
                         </select>
                         <motion.button
                         className="send"

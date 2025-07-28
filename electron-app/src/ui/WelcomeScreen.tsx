@@ -104,14 +104,14 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ userName, setSelectedTrac
         className="welcome-content"
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1, ease: "easeOut" }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
       >
         {/* Time-based greeting */}
         <motion.div
           className="greeting"
           initial={{ opacity: 0, x: -30 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.3, duration: 0.8 }}
+          transition={{ delay: 0.1, duration: 0.4 }}
         >
           {timeOfDay} ☀️
         </motion.div>
@@ -121,7 +121,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ userName, setSelectedTrac
           className="welcome-title"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.8 }}
+          transition={{ delay: 0.2, duration: 0.4 }}
         >
           Welcome back, 
           <span className="user-name"> {userName}</span>
@@ -133,7 +133,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ userName, setSelectedTrac
           className="decorative-divider"
           initial={{ width: 0, opacity: 0 }}
           animate={{ width: 120, opacity: 1 }}
-          transition={{ delay: 0.8, duration: 1 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
         >
           <div className="divider-dot"></div>
           <div className="divider-line"></div>
@@ -145,7 +145,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ userName, setSelectedTrac
           className="welcome-description"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 1, duration: 0.8 }}
+          transition={{ delay: 0.4, duration: 0.4 }}
         >
           Ready to continue your wellness journey? Your mental health and happiness matter. 
           Let's make today a step forward together. 💜
@@ -156,7 +156,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ userName, setSelectedTrac
           className="action-buttons"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.2, duration: 0.8 }}
+          transition={{ delay: 0.5, duration: 0.4 }}
         >
           <motion.button
             className="primary-btn get-started"
@@ -194,7 +194,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ userName, setSelectedTrac
           className="affirmation-container"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 1.5, duration: 0.8 }}
+          transition={{ delay: 0.6, duration: 0.4 }}
         >
           <div className="affirmation-label">Daily Reminder</div>
           <AnimatePresence mode="wait">
@@ -204,7 +204,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ userName, setSelectedTrac
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.6 }}
+              transition={{ duration: 0.3 }}
             >
               {currentAffirmation}
             </motion.div>
@@ -227,11 +227,12 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ userName, setSelectedTrac
           className="stats-preview"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.8, duration: 0.8 }}
+          transition={{ delay: 0.7, duration: 0.4 }}
         >
           <motion.div 
             className="stat-card"
             whileHover={{ y: -5, boxShadow: "0 10px 30px rgba(0,0,0,0.2)" }}
+            onClick={() => setSelectedTracker(trackers.find(t => t.id === 'wellness-tracker') || null)}
           >
             <div className="stat-icon">📊</div>
             <div className="stat-label">Track Progress</div>
@@ -240,17 +241,19 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ userName, setSelectedTrac
           <motion.div 
             className="stat-card"
             whileHover={{ y: -5, boxShadow: "0 10px 30px rgba(0,0,0,0.2)" }}
+            onClick={() => setSelectedTracker(trackers.find(t => t.id === 'mood-summarizer') || null)}
           >
-            <div className="stat-icon">🎯</div>
-            <div className="stat-label">Set Goals</div>
+            <div className="stat-icon">📋</div>
+            <div className="stat-label">Mood Summarizer</div>
           </motion.div>
           
           <motion.div 
             className="stat-card"
             whileHover={{ y: -5, boxShadow: "0 10px 30px rgba(0,0,0,0.2)" }}
+            onClick={() => setSelectedTracker(trackers.find(t => t.id === 'memory-lane') || null)}
           >
-            <div className="stat-icon">🏆</div>
-            <div className="stat-label">Celebrate Wins</div>
+            <div className="stat-icon">🧠</div>
+            <div className="stat-label">Memory Lane</div>
           </motion.div>
         </motion.div>
       </motion.div>
