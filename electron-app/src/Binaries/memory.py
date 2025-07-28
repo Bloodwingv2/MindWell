@@ -73,14 +73,25 @@ def upsert_today_summary(date: str, summary: str, tips: str):
 
 # --- Buffer Functions ---
 
+# Alternative version with message separation
 def add_to_buffer(sender: str, message: str):
-    """Adds a message to the conversation buffer."""
+    """Consolidates all messages into a single entry per sender with a message counter."""
     conn = sqlite3.connect(MEMORY_DB)
     cursor = conn.cursor()
     timestamp = datetime.now().isoformat()
+    
     try:
+        # Delete all older unread entries for this sender
         cursor.execute(
-            "INSERT INTO conversation_buffer (timestamp, sender, message) VALUES (?, ?, ?)",
+            "DELETE FROM conversation_buffer WHERE sender = ? AND status = 'unread'",
+            (sender,)
+        )
+        
+        # Add new entry
+        cursor.execute(
+            """INSERT INTO conversation_buffer 
+               (timestamp, sender, message, status) 
+               VALUES (?, ?, ?, 'unread')""",
             (timestamp, sender, message)
         )
         conn.commit()
@@ -88,21 +99,34 @@ def add_to_buffer(sender: str, message: str):
         conn.close()
 
 def get_unread_buffer():
-    """Fetches all unread messages from the buffer, ordered by timestamp."""
+    """Fetches all unread messages grouped by sender."""
     conn = sqlite3.connect(MEMORY_DB)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
-    cursor.execute("SELECT id, sender, message FROM conversation_buffer WHERE status = 'unread' ORDER BY timestamp ASC")
+    
+    # Group all messages by sender
+    cursor.execute("""
+        SELECT 
+            MIN(id) as id,
+            sender,
+            GROUP_CONCAT(message, '\n---\n') as message
+        FROM conversation_buffer 
+        WHERE status = 'unread'
+        GROUP BY sender
+        ORDER BY MIN(timestamp) ASC
+    """)
+    
     messages = [dict(row) for row in cursor.fetchall()]
     conn.close()
     return messages
 
 def delete_processed_buffer(ids):
-    """Deletes processed messages from the buffer by their IDs."""
+    """Marks all messages as processed."""
     conn = sqlite3.connect(MEMORY_DB)
     cursor = conn.cursor()
     try:
-        cursor.executemany("DELETE FROM conversation_buffer WHERE id = ?", [(id,) for id in ids])
+        # Mark all as processed instead of deleting
+        cursor.execute("UPDATE conversation_buffer SET status = 'processed'")
         conn.commit()
     finally:
         conn.close()

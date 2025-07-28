@@ -659,6 +659,39 @@ async def clear_data():
         logging.error(f"Error clearing data: {e}")
         return JSONResponse(content={"error": str(e)}, status_code=500)
 
+@app.get("/view_buffer")
+async def view_buffer():
+    """View current contents of the conversation buffer"""
+    try:
+        buffer_contents = get_unread_buffer()
+        if not buffer_contents:
+            return JSONResponse(
+                content={"message": "Buffer is empty", "data": []}, 
+                status_code=200
+            )
+        
+        formatted_buffer = []
+        for entry in buffer_contents:
+            formatted_buffer.append({
+                "id": entry["id"],
+                "sender": entry["sender"],
+                "message": entry["message"].split("\n---\n")  # Split into individual messages
+            })
+            
+        return JSONResponse(
+            content={
+                "message": f"Found {len(buffer_contents)} entries in buffer",
+                "data": formatted_buffer
+            },
+            status_code=200
+        )
+    except Exception as e:
+        logging.error(f"Error viewing buffer: {e}")
+        return JSONResponse(
+            content={"error": f"Failed to view buffer: {str(e)}"}, 
+            status_code=500
+        )
+
 # --- Main Execution Block ---
 if __name__ == "__main__":
     import uvicorn
