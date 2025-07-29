@@ -36,7 +36,8 @@
     "warningsAsErrors": false,
     "shortcutName": "MindWell",
     "license": "license.txt",
-    "include": "E:/Github Projects/Gemmatalk/electron-app/installer-script.nsi"
+    "include": "E:/Github Projects/Gemmatalk/electron-app/installer-script.nsi",
+    "uninstallDisplayName": "MindWell"
   },
   "mac": {
     "target": "dmg"
