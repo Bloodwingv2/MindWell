@@ -35,7 +35,7 @@ Function OllamaPageShow
   Pop $2
 
   # Info text
-  ${NSD_CreateLabel} 10u 30u 90% 20u "Ollama is required to run MindWell locally. It provides AI models for inference and has in-built CUDA libraries."
+  ${NSD_CreateLabel} 10u 30u 90% 20u "Ollama is required download Gemma3n and to run MindWell locally. It provides AI models for inference and has in-built CUDA libraries."
   Pop $3
 
   ${NSD_CreateLabel} 10u 48u 90% 20u "Would you like to launch the Ollama installer now?"
@@ -103,10 +103,10 @@ Function un.ShowOllamaCleanupDialog
   CreateFont $R0 "MS Shell Dlg" 10 700
   SendMessage $2 ${WM_SETFONT} $R0 0
 
-  ${NSD_CreateLabel} 10u 28u 90% 20u "Would you like to remove downloaded Ollama models?"
+  ${NSD_CreateLabel} 10u 28u 90% 20u "Would you like to remove the downloaded Gemma3n model?"
   Pop $3
 
-  ${NSD_CreateCheckbox} 10u 52u 90% 12u "Remove Ollama models (Recommended)"
+  ${NSD_CreateCheckbox} 10u 52u 90% 12u "Remove Gemma3n (Recommended)"
   Pop $4
   ${NSD_SetState} $4 ${BST_UNCHECKED}
   StrCpy $R1 $4
