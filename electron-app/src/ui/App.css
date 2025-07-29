@@ -15,7 +15,73 @@ body {
   background: #1a1a2e; /* Solid dark purple background */
   color: #e0e0e0;
   overflow: hidden;
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
 }
+
+/* --- Window Animations --- */
+
+@keyframes window-minimize {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+}
+
+@keyframes window-maximize {
+    0% {
+        transform: scale(0.95);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes window-restore {
+    0% {
+        transform: scale(1.02);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes window-close {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(0.97);
+        opacity: 0;
+    }
+}
+
+body.minimizing {
+    animation: window-minimize 0.2s ease-in-out forwards;
+}
+
+body.maximizing {
+    animation: window-maximize 0.2s ease-in-out forwards;
+}
+
+body.restoring {
+    animation: window-restore 0.2s ease-in-out forwards;
+}
+
+body.closing {
+    animation: window-close 0.2s ease-in-out forwards;
+}
+
 
 /* --- Main Layout --- */
 
