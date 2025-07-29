@@ -35,7 +35,7 @@ Function OllamaPageShow
   Pop $2
 
   # Info text
-  ${NSD_CreateLabel} 10u 30u 90% 20u "Ollama is required to run MindWell locally. It provides AI models for inference."
+  ${NSD_CreateLabel} 10u 30u 90% 20u "Ollama is required to run MindWell locally. It provides AI models for inference and has in-built CUDA libraries."
   Pop $3
 
   ${NSD_CreateLabel} 10u 48u 90% 20u "Would you like to launch the Ollama installer now?"
@@ -51,7 +51,7 @@ Function OllamaPageShow
   Pop $5
 
   # ⚠️ Warning about model download
-  ${NSD_CreateLabel} 10u 108u 90% 24u "Note: A ~2GB AI model will be downloaded during the first run. Additional models may be downloaded later."
+  ${NSD_CreateLabel} 10u 108u 90% 24u "Note: A ~5GB AI model will be downloaded during the first run."
   Pop $6
 
   # Red text on light yellow background for more emphasis
