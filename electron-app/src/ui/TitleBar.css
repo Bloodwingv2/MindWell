@@ -1,0 +1,173 @@
+/* TitleBar.css */
+.titlebar {
+    height: 32px;
+    /* Change the background to match your app's dark theme */
+    background: #20203a;  /* This matches your sidebar color */
+    /* Or if you want a subtle gradient */
+    /* background: linear-gradient(to right, #1a1a2e, #20203a); */
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid #33334d;  /* Match your existing border color */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+    position: relative;
+    z-index: 1000;
+    box-shadow: 0 1px 10px rgba(0, 0, 0, 0.3);
+}
+
+.titlebar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(96, 165, 250, 0.3) 30%, 
+        rgba(167, 139, 250, 0.3) 70%, 
+        transparent 100%
+    );
+}
+
+.titlebar-drag-region {
+    -webkit-app-region: drag;
+    flex-grow: 1;
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.titlebar-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 8px;
+    pointer-events: none;
+}
+
+.app-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, rgba(96, 165, 250, 0.1), rgba(167, 139, 250, 0.1));
+    border: 1px solid rgba(96, 165, 250, 0.2);
+    transition: all 0.3s ease;
+}
+
+.app-logo:hover {
+    background: linear-gradient(135deg, rgba(96, 165, 250, 0.2), rgba(167, 139, 250, 0.2));
+    border-color: rgba(96, 165, 250, 0.4);
+    transform: scale(1.05);
+}
+
+.window-title {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.window-controls {
+    display: flex;
+    height: 100%;
+    -webkit-app-region: no-drag;
+}
+
+.window-control {
+    width: 46px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.1s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.window-control:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.window-control.minimize:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.window-control.maximize:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.window-control.close:hover {
+    background: #e81123;
+}
+
+/* Animation classes */
+.maximized .window-control.maximize svg {
+    transform: scale(0.8);
+}
+
+.minimizing {
+    animation: minimize 0.3s ease-in-out;
+}
+
+.maximizing {
+    animation: maximize 0.3s ease-in-out;
+}
+
+.closing {
+    animation: close 0.3s ease-in-out;
+}
+
+@keyframes minimize {
+    0% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(0.8); opacity: 0; }
+}
+
+@keyframes maximize {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+@keyframes close {
+    0% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(0.8); opacity: 0; }
+}
+
+/* Focus styles for accessibility */
+.window-control:focus-visible {
+    outline: 2px solid rgba(96, 165, 250, 0.6);
+    outline-offset: -2px;
+}
+
+/* Dark mode enhancements */
+@media (prefers-color-scheme: dark) {
+    .titlebar {
+        background: #20203a;
+        /* Or with gradient */
+        /* background: linear-gradient(to right, #1a1a2e, #20203a); */
+    }
+}
+
+/* Windows-specific adjustments */
+@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
+    .titlebar {
+        backdrop-filter: none;
+        background: #1e1e28;
+    }
+}
+
+.titlebar-logo {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+}

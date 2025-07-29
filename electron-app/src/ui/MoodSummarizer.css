@@ -3,7 +3,7 @@
   background: #1a1a2e;
   color: #e0e0e0;
   overflow-y: auto;
-  height: calc(100vh - 80px);
+  height: 100vh; /* Adjust for titlebar + padding */
 }
 
 .mood-summarizer-header {

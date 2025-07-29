@@ -1,6 +1,6 @@
 import { isDev } from "./util";
 import { execFile } from "child_process";
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, ipcMain } from "electron";
 import * as path from "path";
 import treeKill from 'tree-kill';
 
@@ -8,12 +8,74 @@ let backendprocess : ReturnType<typeof execFile> | null = null;
 
 function WindowSettings() {
     const mainWindow = new BrowserWindow({
-        frame: true,
+        frame: false,
+        transparent: true,
         autoHideMenuBar: true,
         webPreferences: {
             nodeIntegration: true,
-            contextIsolation: false,
-        },
+            contextIsolation: true,
+            preload: path.join(__dirname, 'preload.js')
+        }
+    });
+
+    // Window control handlers with animations
+    ipcMain.handle('minimize-window', () => {
+        mainWindow.webContents.send('window-will-minimize');
+        setTimeout(() => {
+            mainWindow.minimize();
+        }, 200);
+    });
+
+    ipcMain.handle('maximize-window', () => {
+        if (mainWindow.isMaximized()) {
+            mainWindow.webContents.send('window-will-restore');
+            setTimeout(() => {
+                mainWindow.restore();
+            }, 200);
+        } else {
+            mainWindow.webContents.send('window-will-maximize');
+            setTimeout(() => {
+                mainWindow.maximize();
+            }, 200);
+        }
+    });
+
+    ipcMain.handle('close-window', () => {
+        mainWindow.webContents.send('window-will-close');
+        setTimeout(() => {
+            mainWindow.close();
+        }, 200);
+    });
+
+    // Window state tracking
+    ipcMain.handle('is-maximized', () => {
+        return mainWindow.isMaximized();
+    });
+
+    // Enhanced window state events
+    mainWindow.on('maximize', () => {
+        mainWindow.webContents.send('window-maximized');
+    });
+
+    mainWindow.on('unmaximize', () => {
+        mainWindow.webContents.send('window-unmaximized');
+    });
+
+    mainWindow.on('minimize', () => {
+        mainWindow.webContents.send('window-minimized');
+    });
+
+    mainWindow.on('restore', () => {
+        mainWindow.webContents.send('window-restored');
+    });
+
+    // Double-click titlebar to maximize/restore
+    ipcMain.handle('titlebar-doubleclick', () => {
+        if (mainWindow.isMaximized()) {
+            mainWindow.restore();
+        } else {
+            mainWindow.maximize();
+        }
     });
 
     mainWindow.maximize();

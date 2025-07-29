@@ -1,4 +1,4 @@
-import React, { useState} from 'react';
+import React, { useState, useEffect } from 'react';
 import './settings.css';
 
 interface SettingsProps {
@@ -36,6 +36,20 @@ const Settings: React.FC<SettingsProps> = ({ userName, setUserName, showNotifica
   const [defaultLanguage, setDefaultLanguage] = useState(() => 
     localStorage.getItem('defaultLanguage') || 'en'
   );
+
+  useEffect(() => {
+    const savedLanguage = localStorage.getItem('defaultLanguage') || 'en';
+    // Send saved language to backend on component mount
+    fetch('http://localhost:8000/update_settings', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ defaultlang: savedLanguage }),
+    }).catch(error => {
+      console.error('Error updating default language on mount:', error);
+    });
+  }, []);
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setLocalUserName(e.target.value);

@@ -71,9 +71,27 @@ LANGUAGE_NAMES = {
     'tl': 'Filipino (Tagalog)'
 }
 
-# Add this near the top with other global variables
 DEFAULT_LANGUAGE = 'en'  # Default fallback
+SETTINGS_FILE = os.path.join(os.path.dirname(__file__), "settings.json")
 
+def load_settings():
+    """Load settings from file"""
+    global DEFAULT_LANGUAGE
+    try:
+        if os.path.exists(SETTINGS_FILE):
+            with open(SETTINGS_FILE, 'r') as f:
+                settings = json.load(f)
+                DEFAULT_LANGUAGE = settings.get('defaultlang', 'en')
+    except Exception as e:
+        logging.error(f"Error loading settings: {e}")
+
+def save_settings(settings):
+    """Save settings to file"""
+    try:
+        with open(SETTINGS_FILE, 'w') as f:
+            json.dump(settings, f)
+    except Exception as e:
+        logging.error(f"Error saving settings: {e}")
 
 # --- Helper Functions ---
 async def get_model_instance(model_name: str = "gemma3n:e2b", streaming: bool = False, callbacks: list = None):
@@ -187,8 +205,9 @@ from contextlib import asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
     logging.info("Starting up FastAPI application")
+    load_settings()  # Load settings on startup
     yield
-    # Shutdown - Clean up model instances
+    # Shutdown
     global _model_instances
     async with _model_lock:
         _model_instances.clear()
@@ -712,6 +731,9 @@ async def update_settings(request: Request):
         data = await request.json()
         global DEFAULT_LANGUAGE
         DEFAULT_LANGUAGE = data.get('defaultlang', 'en')
+        
+        # Save settings to file
+        save_settings({'defaultlang': DEFAULT_LANGUAGE})
         
         return JSONResponse(
             content={"message": "Settings updated successfully"},

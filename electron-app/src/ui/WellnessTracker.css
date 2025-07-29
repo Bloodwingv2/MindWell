@@ -46,10 +46,10 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    height: 100vh; /* Use viewport height instead of min-height */
+    height: calc(100vh - 30px); /* Adjust for titlebar */
     box-sizing: border-box;
     font-family: 'Inter', sans-serif;
-    overflow-y: auto; /* Make only the container scrollable */
+    overflow-y: auto;
     overflow-x: hidden;
 }
 

@@ -1,3 +1,5 @@
+import React from 'react';
+import TitleBar from './TitleBar';
 import './App.css'
 import WellnessTracker from './WellnessTracker';
 import MoodSummarizer from './MoodSummarizer';
@@ -112,7 +114,7 @@ const TerminalComponent: React.FC<TerminalComponentProps> = ({ terminalRef, fitA
   return <div id="terminal-container" style={{ width: '100%', height: '100%' }} />;
 };
 
-function App() {
+const App = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [selectedTracker, setSelectedTracker] = useState<Tracker | null>(null);
@@ -412,32 +414,55 @@ function App() {
   }
 
   return (
-    <div className="app">
-      <motion.div
-          className="sidebar"
-          initial={{ x: -260, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 0.3, ease: "easeOut" }}
-        >
-        <div className="upperside">
-          <div className="uppersidetop">
-            <img src={ISAClogo} alt="" className="logo" />
-            <span className="brand">MindWell</span>
-          </div>
-          <div className="trackers-list">
-            <h3>Trackers & Tools</h3>
-            {trackers.map((tracker) => (
+    <>
+      <TitleBar />
+      <div className="app-content">
+        <div className="app">
+          <motion.div
+              className="sidebar"
+              initial={{ x: -260, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+            >
+            <div className="upperside">
+              <div className="uppersidetop">
+                <img src={ISAClogo} alt="" className="logo" />
+                <span className="brand">MindWell</span>
+              </div>
+              <div className="trackers-list">
+                <h3>Trackers & Tools</h3>
+                {trackers.map((tracker) => (
+                  <motion.button
+                    key={tracker.id}
+                    className={`tracker-item ${selectedTracker?.id === tracker.id ? 'selected' : ''} ${visitedTrackers.includes(tracker.id) ? 'visited' : ''} ${completedTrackers.includes(tracker.id) ? 'completed' : ''}`}
+                    onClick={() => {
+                      setSelectedTracker(tracker);
+                      setShowSettings(false);
+                      if (!visitedTrackers.includes(tracker.id)) {
+                        setVisitedTrackers(prev => [...prev, tracker.id]);
+                      }
+                    }}
+                    whileHover={{ scale: 1.05, backgroundColor: 'rgba(6, 16, 102, 0.1)', color: '#ffffff' }}
+                    whileTap={{ scale: 0.97 }}
+                    variants={{
+                      hidden: { opacity: 0, x: -20 },
+                      visible: { opacity: 1, x: 0 }
+                    }}
+                    initial="hidden"
+                    animate="visible"
+                    transition={{ type: "spring", stiffness: 400, damping: 25, delay: trackers.indexOf(tracker) * 0.03 }}
+                  >
+                    <img src={tracker.icon} alt={`${tracker.title} icon`} className="tracker-icon" />
+                    {tracker.title}
+                  </motion.button>
+                ))}
+              </div>
+            </div>
+            <div className="lowerside">
               <motion.button
-                key={tracker.id}
-                className={`tracker-item ${selectedTracker?.id === tracker.id ? 'selected' : ''} ${visitedTrackers.includes(tracker.id) ? 'visited' : ''} ${completedTrackers.includes(tracker.id) ? 'completed' : ''}`}
-                onClick={() => {
-                  setSelectedTracker(tracker);
-                  setShowSettings(false);
-                  if (!visitedTrackers.includes(tracker.id)) {
-                    setVisitedTrackers(prev => [...prev, tracker.id]);
-                  }
-                }}
-                whileHover={{ scale: 1.05, backgroundColor: 'rgba(6, 16, 102, 0.1)', color: '#ffffff' }}
+                className="queryBottom"
+                onClick={() => {setSelectedTracker(null); setShowSettings(false)}}
+                whileHover={{ scale: 1.05, backgroundColor: 'rgba(255, 255, 255, 0.1)', color: '#ffffff' }}
                 whileTap={{ scale: 0.97 }}
                 variants={{
                   hidden: { opacity: 0, x: -20 },
@@ -445,153 +470,135 @@ function App() {
                 }}
                 initial="hidden"
                 animate="visible"
-                transition={{ type: "spring", stiffness: 400, damping: 25, delay: trackers.indexOf(tracker) * 0.03 }}
+                transition={{ type: "spring", stiffness: 400, damping: 25, delay: trackers.length * 0.03 }}
               >
-                <img src={tracker.icon} alt={`${tracker.title} icon`} className="tracker-icon" />
-                {tracker.title}
+                <img src={homeicon} alt="" className = "Homeicon" />Home
               </motion.button>
-            ))}
-          </div>
-        </div>
-        <div className="lowerside">
-          <motion.button
-            className="queryBottom"
-            onClick={() => {setSelectedTracker(null); setShowSettings(false)}}
-            whileHover={{ scale: 1.05, backgroundColor: 'rgba(255, 255, 255, 0.1)', color: '#ffffff' }}
-            whileTap={{ scale: 0.97 }}
-            variants={{
-              hidden: { opacity: 0, x: -20 },
-              visible: { opacity: 1, x: 0 }
-            }}
-            initial="hidden"
-            animate="visible"
-            transition={{ type: "spring", stiffness: 400, damping: 25, delay: trackers.length * 0.03 }}
-          >
-            <img src={homeicon} alt="" className = "Homeicon" />Home
-          </motion.button>
-          <motion.button
-            className="queryBottom"
-            onClick={() => {setSelectedTracker(null); setShowSettings(true)}}
-            whileHover={{ scale: 1.05, backgroundColor: 'rgba(255, 255, 255, 0.1)', color: '#ffffff' }}
-            whileTap={{ scale: 0.97 }}
-            variants={{
-              hidden: { opacity: 0, x: -20 },
-              visible: { opacity: 1, x: 0 }
-            }}
-            initial="hidden"
-            animate="visible"
-            transition={{ type: "spring", stiffness: 400, damping: 25, delay: (trackers.length + 1) * 0.03 }}
-          >
-            <img src={settingsicon} alt="" className = "SettingsIcon"/>Settings
-          </motion.button>
-        </div>
-      </motion.div>
-      <div className="main">
-        {showTerminal ? (
-          <TerminalComponent terminalRef={terminalRef} fitAddonRef={fitAddonRef} onTerminalReady={handleTerminalReady} />
-        ) : showSettings ? (
-          <Settings userName={userName} setUserName={setUserName} showNotification={showNotification} />
-        ) : selectedTracker ? (
-          <div className="tracker-content-area">
-            {selectedTracker.id === 'mood-summarizer' ? (
-              <MoodSummarizer isProcessing={isMoodProcessing} setIsProcessing={setIsMoodProcessing} />
-            ) : selectedTracker.id === 'wellness-tracker' ? (
-              <WellnessTracker />
-            ) : selectedTracker.id === 'memory-lane' ? (
-              <MemoryLane />
-            ) : selectedTracker.id === 'chat-assistant' ? (
-                <div className="mental-health-chat-section">
-                    <div className="chat-header">
-                        <h3>MindWell Assistant</h3>
-                        <p>Your friendly and supportive AI companion.</p>
-                    </div>
-                    <div className="chats">
-                    {messages.map((message) => (
-                    <motion.div
-                      key={message.id}
-                      className={`message-container ${message.role}`}
-                      initial={{ opacity: 0, y: 20, scale: 0.8 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      transition={{ type: "spring", stiffness: 500, damping: 30, duration: 0.3 }}
-                    >
-                      <div className="message-content">
-                        {message.role === 'assistant' && message.loading && !message.displayedContent ? (
-                          <div className="loading-dots typing-indicator">
-                            <span></span>
-                            <span></span>
-                            <span></span>
-                          </div>
-                        ) : (
-                          <p>{message.displayedContent || message.content}</p>
-                        )}
-                      </div>
-                    </motion.div>
-                  ))}
-                    <div ref={messagesEndRef} />
-                  </div>
-                    <div className="chatfooter">
-                    <motion.div
-                        className="inputbox"
-                        initial={{ scale: 0.98, opacity: 0.8 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                    >
-                        <input type="text" placeholder='Ask anything...' value={input} onChange={(e) => { setInput(e.target.value) }} onKeyDown={handleKeyDown} disabled={isLoadingResponse} />
-                        <select
-                            className="language-selector"
-                            value={selectedLanguage}
-                            onChange={(e) => setSelectedLanguage(e.target.value)}
+              <motion.button
+                className="queryBottom"
+                onClick={() => {setSelectedTracker(null); setShowSettings(true)}}
+                whileHover={{ scale: 1.05, backgroundColor: 'rgba(255, 255, 255, 0.1)', color: '#ffffff' }}
+                whileTap={{ scale: 0.97 }}
+                variants={{
+                  hidden: { opacity: 0, x: -20 },
+                  visible: { opacity: 1, x: 0 }
+                }}
+                initial="hidden"
+                animate="visible"
+                transition={{ type: "spring", stiffness: 400, damping: 25, delay: (trackers.length + 1) * 0.03 }}
+              >
+                <img src={settingsicon} alt="" className = "SettingsIcon"/>Settings
+              </motion.button>
+            </div>
+          </motion.div>
+          <div className="main">
+            {showTerminal ? (
+              <TerminalComponent terminalRef={terminalRef} fitAddonRef={fitAddonRef} onTerminalReady={handleTerminalReady} />
+            ) : showSettings ? (
+              <Settings userName={userName} setUserName={setUserName} showNotification={showNotification} />
+            ) : selectedTracker ? (
+              <div className="tracker-content-area">
+                {selectedTracker.id === 'mood-summarizer' ? (
+                  <MoodSummarizer isProcessing={isMoodProcessing} setIsProcessing={setIsMoodProcessing} />
+                ) : selectedTracker.id === 'wellness-tracker' ? (
+                  <WellnessTracker />
+                ) : selectedTracker.id === 'memory-lane' ? (
+                  <MemoryLane />
+                ) : selectedTracker.id === 'chat-assistant' ? (
+                    <div className="mental-health-chat-section">
+                        <div className="chat-header">
+                            <h3>MindWell Assistant</h3>
+                            <p>Your friendly and supportive AI companion.</p>
+                        </div>
+                        <div className="chats">
+                        {messages.map((message) => (
+                        <motion.div
+                          key={message.id}
+                          className={`message-container ${message.role}`}
+                          initial={{ opacity: 0, y: 20, scale: 0.8 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          transition={{ type: "spring", stiffness: 500, damping: 30, duration: 0.3 }}
                         >
-                          <option value="en">English</option>
-                          <option value="es">Spanish</option>
-                          <option value="fr">French</option>
-                          <option value="de">German</option>
-                          <option value="zh">Chinese (Simplified)</option>
-                          <option value="ja">Japanese</option>
-                          <option value="ko">Korean</option>
-                          <option value="pt">Portuguese</option>
-                          <option value="ru">Russian</option>
-                          <option value="ar">Arabic</option>
-                          <option value="hi">Hindi</option>
-                          <option value="it">Italian</option>
-                          <option value="nl">Dutch</option>
-                          <option value="sv">Swedish</option>
-                          <option value="tr">Turkish</option>
-                          <option value="pl">Polish</option>
-                          <option value="vi">Vietnamese</option>
-                          <option value="th">Thai</option>
-                          <option value="id">Indonesian</option>
-                          <option value="tl">Filipino (Tagalog)</option>
-                        </select>
-                        <motion.button
-                        className="send"
-                        onClick={askGemma}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        disabled={isLoadingResponse}
-                        ><img src={sentbtn} alt="" className="sendbtnimg"></img></motion.button>
-                    </motion.div>
-                    <p className="disclaimer">MindWell is an AI assistant and not a substitute for professional medical advice.</p>
+                          <div className="message-content">
+                            {message.role === 'assistant' && message.loading && !message.displayedContent ? (
+                              <div className="loading-dots typing-indicator">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                              </div>
+                            ) : (
+                              <p>{message.displayedContent || message.content}</p>
+                            )}
+                          </div>
+                        </motion.div>
+                      ))}
+                        <div ref={messagesEndRef} />
+                      </div>
+                        <div className="chatfooter">
+                        <motion.div
+                            className="inputbox"
+                            initial={{ scale: 0.98, opacity: 0.8 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                        >
+                            <input type="text" placeholder='Ask anything...' value={input} onChange={(e) => { setInput(e.target.value) }} onKeyDown={handleKeyDown} disabled={isLoadingResponse} />
+                            <select
+                                className="language-selector"
+                                value={selectedLanguage}
+                                onChange={(e) => setSelectedLanguage(e.target.value)}
+                            >
+                              <option value="en">English</option>
+                              <option value="es">Spanish</option>
+                              <option value="fr">French</option>
+                              <option value="de">German</option>
+                              <option value="zh">Chinese (Simplified)</option>
+                              <option value="ja">Japanese</option>
+                              <option value="ko">Korean</option>
+                              <option value="pt">Portuguese</option>
+                              <option value="ru">Russian</option>
+                              <option value="ar">Arabic</option>
+                              <option value="hi">Hindi</option>
+                              <option value="it">Italian</option>
+                              <option value="nl">Dutch</option>
+                              <option value="sv">Swedish</option>
+                              <option value="tr">Turkish</option>
+                              <option value="pl">Polish</option>
+                              <option value="vi">Vietnamese</option>
+                              <option value="th">Thai</option>
+                              <option value="id">Indonesian</option>
+                              <option value="tl">Filipino (Tagalog)</option>
+                            </select>
+                            <motion.button
+                            className="send"
+                            onClick={askGemma}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            disabled={isLoadingResponse}
+                            ><img src={sentbtn} alt="" className="sendbtnimg"></img></motion.button>
+                        </motion.div>
+                        <p className="disclaimer">MindWell is an AI assistant and not a substitute for professional medical advice.</p>
+                        </div>
                     </div>
-                </div>
+                ) : (
+                  <div className="tracker-text" dangerouslySetInnerHTML={{ __html: selectedTracker.content }} />
+                )}
+              </div>
             ) : (
-              <div className="tracker-text" dangerouslySetInnerHTML={{ __html: selectedTracker.content }} />
+              <WelcomeScreen userName={userName} setSelectedTracker={setSelectedTracker} trackers={trackers} />
             )}
           </div>
-        ) : (
-          <WelcomeScreen userName={userName} setSelectedTracker={setSelectedTracker} trackers={trackers} />
-        )}
+          {notification && (
+            <Notification
+              message={notification.message}
+              type={notification.type}
+              onClose={handleCloseNotification}
+            />
+          )}
+        </div>
       </div>
-      {notification && (
-        <Notification
-          message={notification.message}
-          type={notification.type}
-          onClose={handleCloseNotification}
-        />
-      )}
-    </div>
-  )
+    </>
+  );
 }
 
-export default App
+export default App;
 
