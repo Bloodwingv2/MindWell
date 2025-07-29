@@ -73,3 +73,59 @@ Function OllamaPageLeave
     DetailPrint "🛑 User chose not to run Ollama Setup."
   ${EndIf}
 FunctionEnd
+
+Var /GLOBAL CleanOllamaUninstall  ; Declare global var
+
+!macro customUnInstall
+  StrCpy $CleanOllamaUninstall 0  ; Default: do not clean
+!macroend
+
+Section "Uninstall"
+  Delete "$INSTDIR\*.*"
+  RMDir /r "$INSTDIR"
+SectionEnd
+
+; Show this page AFTER uninstall section
+UninstPage custom un.ShowOllamaCleanupDialog un.CleanupPageLeave
+
+Function un.ShowOllamaCleanupDialog
+  nsDialogs::Create 1018
+  Pop $0
+  ${If} $0 == error
+    Abort
+  ${EndIf}
+
+  ${NSD_CreateGroupBox} 0 0 100% 80u "Ollama Cleanup Options"
+  Pop $1
+
+  ${NSD_CreateLabel} 10u 10u 100% 15u "🧼 Post-Uninstall Cleanup"
+  Pop $2
+  CreateFont $R0 "MS Shell Dlg" 10 700
+  SendMessage $2 ${WM_SETFONT} $R0 0
+
+  ${NSD_CreateLabel} 10u 28u 90% 20u "Would you like to remove downloaded Ollama models?"
+  Pop $3
+
+  ${NSD_CreateCheckbox} 10u 52u 90% 12u "Remove Ollama models (Recommended)"
+  Pop $4
+  ${NSD_SetState} $4 ${BST_UNCHECKED}
+  StrCpy $R1 $4
+
+  nsDialogs::Show
+FunctionEnd
+
+Function un.CleanupPageLeave
+  ${NSD_GetState} $R1 $CleanOllamaUninstall
+  ${If} $CleanOllamaUninstall == "1"
+    DetailPrint "🧹 Cleaning up Ollama models..."
+    ReadEnvStr $0 "USERPROFILE"
+    RMDir /r "$0\.ollama"
+    DetailPrint "✅ Models removed."
+  ${Else}
+    DetailPrint "❎ Models left untouched."
+  ${EndIf}
+FunctionEnd
+
+
+
+
