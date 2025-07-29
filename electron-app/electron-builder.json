@@ -38,7 +38,7 @@
     "license": "license.txt",
     "include": "E:/Github Projects/Gemmatalk/electron-app/installer-script.nsi",
     "uninstallDisplayName": "MindWell",
-    "artifactName": "MindWell_Setup"
+    "artifactName": "MindWell_Setup.exe"
   },
   "mac": {
     "target": "dmg"
