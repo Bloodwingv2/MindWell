@@ -170,7 +170,7 @@ These libraries allow for an embedded terminal that displays real-time model dow
 
 ---
 
-## 🏗️ Architecture & Tech Stack
+## Architecture & Tech Stack
 
 ```mermaid
 graph TB
