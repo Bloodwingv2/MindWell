@@ -1,8 +1,8 @@
-# 🧠 MindWell - Your Offline AI-Powered Desktop Assistant
+# MindWell - Your Offline AI-Powered Therapy Assistant
 
 <div align="center">
 
-![MindWell Logo](electron-app/src/assets/MindWell.png)
+<img src="electron-app/src/assets/MindWell.png" alt="MindWell Logo" width="150"/>
 
 **Your personal AI-powered assistant for mental wellness and productivity**
 
@@ -12,12 +12,12 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Python](https://img.shields.io/badge/Python-3776AB?style=flat&logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=flat&logo=fastapi)](https://fastapi.tiangolo.com/)
+[![Ollama](https://img.shields.io/badge/Ollama-000000?style=flat&logo=ollama&logoColor=white)](https://ollama.com/)
 
-[![Windows](https://img.shields.io/badge/Windows-0078D6?style=flat&logo=windows&logoColor=white)](https://github.com/MirangBhandari/Gemmatalk/releases)
-[![macOS](https://img.shields.io/badge/macOS-000000?style=flat&logo=apple&logoColor=white)](https://github.com/MirangBhandari/Gemmatalk/releases)
-[![Linux](https://img.shields.io/badge/Linux-FCC624?style=flat&logo=linux&logoColor=black)](https://github.com/MirangBhandari/Gemmatalk/releases)
+[![Windows](https://img.shields.io/badge/Windows-0078D6?style=flat&logo=windows&logoColor=white)](https://github.com/MirangBhandari/MindWell/releases)
 
-[📥 Download](https://github.com/MirangBhandari/Gemmatalk/releases) • [📖 Documentation](#) • [🐛 Report Bug](https://github.com/MirangBhandari/Gemmatalk/issues) • [💡 Request Feature](https://github.com/MirangBhandari/Gemmatalk/issues)
+
+[📥 Download](https://github.com/MirangBhandari/MindWell/releases) • [📖 Documentation](#) • [🐛 Report Bug](https://github.com/MirangBhandari/MindWell/issues) • [💡 Request Feature](https://github.com/MirangBhandari/MindWell/issues)
 
 </div>
 
@@ -25,7 +25,7 @@
 
 ## 🌟 Overview
 
-MindWell is a powerful desktop application designed to be your personal AI-powered assistant, with a special focus on mental wellness and productivity. Built with privacy in mind, it runs completely offline, ensuring your data remains secure on your machine. Experience the power of AI without compromising your privacy.
+MindWell is a powerfu lcompletely offline desktop application utilizing Gemma3n as the brains behind the operation, designed to be your personal AI-powered Therapy assistant, with a special focus on mental wellness tracking, journaling and summarization. Built with privacy in mind, it runs completely offline with its own SQLLite database, ensuring your data remains secure on your machine and only you have access to it. Experience the power of Gemma3n and AI without compromising your privacy.
 
 > 🔒 **Privacy First**: All your data stays on your device. No cloud storage, no data sharing.
 
@@ -33,16 +33,16 @@ MindWell is a powerful desktop application designed to be your personal AI-power
 
 ## ✨ Key Features
 
-<table>
-<tr>
-<td width="50%">
-
-### 🤖 **AI-Powered Chat**
-Interact with a powerful local AI assistant (Gemma model via Ollama) for various tasks including:
+### 🤖 **Gemma3n Powered Chat**
+Interact with a powerful local AI assistant from Google (Gemma3n model via Ollama) for various tasks including:
 - Question answering
-- Creative writing
-- Problem solving
-- General conversation
+- Re-affirmations
+- Wellness tracking
+- Storing Special Memories
+- Journaling
+- Language Switching
+- Exporting or accessing your database
+- and a lot more planned...
 
 ### 😊 **Mood Tracking & Analytics**
 - Log daily moods with detailed entries
@@ -50,36 +50,17 @@ Interact with a powerful local AI assistant (Gemma model via Ollama) for various
 - Insightful summaries over time
 - Pattern recognition and insights
 
-### 🎯 **Smart Goal Management**
-- Define and track personal/professional goals
-- Progress monitoring with visual indicators
-- Milestone celebrations
-- Achievement analytics
-
-</td>
-<td width="50%">
-
-### 📝 **Digital Memory Lane**
-- Secure digital journaling
-- Searchable memory database
-- Rich text formatting
-- Export capabilities
-
-### 🌿 **Wellness Tracking**
-- Daily habit monitoring
-- Wellness activity logging
-- Health trend analysis
-- Customizable wellness metrics
+### 🎯 **Memory Lane**
+- Any special memories tagged by Gemma3n are stored in Memory lane
+- Allows users to Journal, modify the memory on command
+- Revisit old memories with timestamps
+- Delete Memories on command
 
 ### 🔧 **Customization & Accessibility**
 - Personalized settings and themes
-- Text-to-speech functionality
-- Keyboard shortcuts
-- Adaptive UI design
-
-</td>
-</tr>
-</table>
+- User name setting to utilize as context for the chat app
+- default langugae settings to get summarization and journaling in different languages
+- Adaptive UI design and interactive animations
 
 ---
 
@@ -144,8 +125,8 @@ graph TD
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/MirangBhandari/Gemmatalk.git
-   cd Gemmatalk/electron-app
+   git clone https://github.com/MirangBhandari/MindWell.git
+   cd MindWell/electron-app
    ```
 
 2. **Install dependencies**
@@ -270,6 +251,6 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 **Made with ❤️ for mental wellness and productivity**
 
-[⭐ Star this project](https://github.com/MirangBhandari/Gemmatalk) if you find it helpful!
+[⭐ Star this project](https://github.com/MirangBhandari/MindWell) if you find it helpful!
 
 </div>
