@@ -88,18 +88,33 @@ Interact with a powerful local AI assistant (Gemma model via Ollama) for various
 <div align="center">
 
 ```mermaid
-graph TB
-    A[Electron App] --> B[React Frontend]
-    A --> C[Python Backend]
-    B --> D[FastAPI Server]
-    C --> E[Ollama AI]
-    C --> F[Local JSON Storage]
-    D --> G[LangChain]
-    
-    style A fill:#2196F3,color:#fff
-    style B fill:#61DAFB,color:#000
-    style C fill:#3776AB,color:#fff
-    style E fill:#FF6B35,color:#fff
+graph TD
+    subgraph "Electron App"
+        direction LR
+        A[Electron Main Process]
+        B[React Frontend]
+    end
+
+    subgraph "Backend"
+        direction LR
+        C[FastAPI Server]
+        D[Ollama (Gemma)]
+        E[SQLite Database]
+        F[LangChain]
+    end
+
+    A -- Manages & Spawns --> C
+    B -- HTTP Requests --> C
+    C -- Interacts with --> D
+    C -- Reads/Writes --> E
+    C -- Uses --> F
+
+    style A fill:#47848F,stroke:#333,stroke-width:2px
+    style B fill:#61DAFB,stroke:#333,stroke-width:2px
+    style C fill:#009688,stroke:#333,stroke-width:2px
+    style D fill:#F9A825,stroke:#333,stroke-width:2px
+    style E fill:#7E57C2,stroke:#333,stroke-width:2px
+    style F fill:#FF6B6B,stroke:#333,stroke-width:2px
 ```
 
 </div>
