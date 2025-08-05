@@ -252,7 +252,7 @@ graph TB
 
 1. **Install Ollama** (if not already installed)
    - Visit [ollama.ai](https://ollama.ai) and follow installation instructions
-   - Pull the Gemma model: `ollama pull gemma`
+   - Pull the Gemma model: `ollama pull gemma3n:e2b`
 
 2. **Launch MindWell**
    - The application will automatically detect your Ollama installation
