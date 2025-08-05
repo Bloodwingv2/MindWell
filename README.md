@@ -23,19 +23,44 @@
 
 ---
 
-## 🌟 Overview
+# 🌟 Overview
 
-Ever wondered if your data is safe or not? Ever wondered how much of your data you are actually unknowingly giving to chat applications on the internet? No????
+Ever wondered if your data is safe or not? Ever wondered how much of your data you are actually unknowingly giving to chat applications on the internet? No???? click at this article below:
 
-Well, I have just the answer for all your therapeutic needs! Instead of asking ChatGPT or other AI tools for therapy, why not ask MindWell? Your very own offline AI desktop app where you are in control of your data and you can analyze and journal your special memories, and view your progress over time.
+<a href="https://www.bbc.com/news/articles/c0573lj172jo" target="_blank">
+  <img width="600" height="400" alt="Meta AI article" src="https://github.com/user-attachments/assets/710a0638-cc7c-4693-bbb4-043b2d39bbed" />
+</a>
 
-All of this is possible thanks to a lightweight model from Google called **"Gemma3n"**.
+<br>
+<br>
 
-Gemma3n is truly one of a kind! You know how models create better responses based on the parameters they have? Well, Gemma3n is unique - it has a footprint of 5B parameters but operates with the memory capacity of only 2B (in the case of e2b), allowing us to create a desktop application with 2 instances of the model when required for internal calls of summarization + chat + tracking + journaling all at once!!! How awesome is that??
+If you read the article your reaction is probably like this right now 
 
-Below you can check out the architecture diagram and tech stacks used in this project
+<img width="400" height="300" alt="aww-hell" src="https://github.com/user-attachments/assets/0b250dda-e09c-4c8a-97e5-71e5cecd16fc" />
+
+<br>
+<br>
+
+Well, I have some good news for you!! , Google's recent high performance `Gemma3n model` is the answer for all your therapeutic needs! Instead of asking ChatGPT or other AI tools for therapy, why not ask **MindWell**? Your very own offline AI desktop app where you are in control of your data and you can `analyze` and `journal` your `special memories`, and view your `progress` over time.
+
+## The Magic Behind MindWell
+
+All of this is possible thanks to a lightweight model from Google called **"Gemma 3n"**.
+
+Gemma 3n is truly one of a kind! You know how models create better responses based on the parameters they have? Well, Gemma 3n is unique in this case - it has a footprint of 5B parameters but operates with the memory capacity of only 2B (in the case of e2b), allowing us to create a desktop application with **2 instances of the model** when required for internal calls with much less memory and utilize the TTL mechanisims of Ollama to auto-kill the instance when in-active creating a smooth experience for the entire Desktop application itself:
+
+- 📝 **Summarization**
+- 💬 **Chat**  
+- 📊 **Tracking**
+- 📔 **Journaling**
+
+**All at once!!!** How awesome is that??
+
+<img width="480" height="270" alt="giphy-downsized" src="https://github.com/user-attachments/assets/3b8dc88c-dadc-4482-a767-86acbe20a387" />
 
 ---
+
+Below you can check out the architecture diagram and tech stacks used in this project:
 
 ## Key Features
 
@@ -53,7 +78,7 @@ Interact with a powerful local AI assistant from Google (Gemma3n model via Ollam
 - Language Switching  
 - Exporting or accessing your database  
 - and a lot more planned...
-<img width="1917" height="1020" alt="Streaming img" src="https://github.com/user-attachments/assets/6f88a745-5cf6-4f27-abee-628e1ea5c06c" />
+<img width="1280" height="720" alt="Streaming img" src="https://github.com/user-attachments/assets/6f88a745-5cf6-4f27-abee-628e1ea5c06c" />
 
 ---
 
@@ -64,9 +89,9 @@ Interact with a powerful local AI assistant from Google (Gemma3n model via Ollam
 - Pattern recognition and insights
 - Multilingual Summarization
 
-<img width="1363" height="715" alt="Mindwell graph" src="https://github.com/user-attachments/assets/c5e37669-b3e9-4a8c-91bf-511d72bae65e" />
+<img width="1280" height="720" alt="Mindwell graph" src="https://github.com/user-attachments/assets/c5e37669-b3e9-4a8c-91bf-511d72bae65e" />
 <br><br>
-<img width="1917" height="1022" alt="Summary, Analyze conversations" src="https://github.com/user-attachments/assets/699c9510-a9cc-4d40-91c7-34e36eb34071" />
+<img width="1280" height="720" alt="Summary, Analyze conversations" src="https://github.com/user-attachments/assets/699c9510-a9cc-4d40-91c7-34e36eb34071" />
 
 ---
 
@@ -77,7 +102,17 @@ Interact with a powerful local AI assistant from Google (Gemma3n model via Ollam
 - Delete Memories on command
 - Multilingual Memory storage
 
-<img width="1918" height="1017" alt="Memory Lane section" src="https://github.com/user-attachments/assets/6f168c2d-bfdc-45f0-aa2d-972bd1d92341" />
+# Memory Lane UI
+
+<img width="1280" height="720" alt="Memory Lane section" src="https://github.com/user-attachments/assets/6f168c2d-bfdc-45f0-aa2d-972bd1d92341" />
+
+<br>
+
+# Journaling/Editing Memory UI
+
+<img width="600" height="600" alt="Put command eg" src="https://github.com/user-attachments/assets/44f28b1f-41e1-425b-989a-9b8bf174f394" />
+
+
 
 ---
 
