@@ -35,40 +35,108 @@ Gemma3n is truly one of a kind! You know how models create better responses base
 
 Below you can check out the architecture diagram and tech stacks used in this project
 
-> 🔒 **Privacy First**: All your data stays on your device. No cloud storage, no data sharing.
-
 ---
 
-## ✨ Key Features
+## Key Features
 
-### 🤖 **Gemma3n Powered Chat**
+<div align="left">
+  <img width="250" height="250" alt="gemma3n" src="https://github.com/user-attachments/assets/12d3e39c-5ba3-4be4-9ae6-98bb56408a23" />
+</div>
+<br>
+
 Interact with a powerful local AI assistant from Google (Gemma3n model via Ollama) for various tasks including:
-- Question answering
-- Re-affirmations
-- Wellness tracking
-- Storing Special Memories
-- Journaling
-- Language Switching
-- Exporting or accessing your database
+- Question answering  
+- Re-affirmations  
+- Wellness tracking  
+- Storing Special Memories  
+- Journaling  
+- Language Switching  
+- Exporting or accessing your database  
 - and a lot more planned...
+<img width="1917" height="1020" alt="Streaming img" src="https://github.com/user-attachments/assets/6f88a745-5cf6-4f27-abee-628e1ea5c06c" />
+
+---
 
 ### 😊 **Mood Tracking & Analytics**
 - Log daily moods with detailed entries
 - Interactive mood trend visualizations
 - Insightful summaries over time
 - Pattern recognition and insights
+- Multilingual Summarization
 
-### 🎯 **Memory Lane**
+<img width="1363" height="715" alt="Mindwell graph" src="https://github.com/user-attachments/assets/c5e37669-b3e9-4a8c-91bf-511d72bae65e" />
+<br><br>
+<img width="1917" height="1022" alt="Summary, Analyze conversations" src="https://github.com/user-attachments/assets/699c9510-a9cc-4d40-91c7-34e36eb34071" />
+
+---
+
+### **Memory Lane**
 - Any special memories tagged by Gemma3n are stored in Memory lane
 - Allows users to Journal, modify the memory on command
 - Revisit old memories with timestamps
 - Delete Memories on command
+- Multilingual Memory storage
+
+<img width="1918" height="1017" alt="Memory Lane section" src="https://github.com/user-attachments/assets/6f168c2d-bfdc-45f0-aa2d-972bd1d92341" />
+
+---
 
 ### 🔧 **Customization & Accessibility**
 - Personalized settings and themes
 - User name setting to utilize as context for the chat app
 - default langugae settings to get summarization and journaling in different languages
 - Adaptive UI design and interactive animations
+  
+<img width="1900" height="1015" alt="Settings tsx" src="https://github.com/user-attachments/assets/d9bbec63-a6e9-4c2b-bdf3-3dcfdf6e2fce" />
+
+## 🛠 Key Components
+
+### Custom NSIS Installer
+
+![MindWell Installer](https://github.com/user-attachments/assets/790d84b0-ceb1-482d-866f-44bb3430fe18)
+
+A fully configured NSIS (Nullsoft Scriptable Install System) installer bundles the entire Electron app along with required binaries. It handles:
+
+- Offline installation of MindWell
+- Offline installation of Ollama
+
+### Integrated Terminal (xterm.js)
+
+![Terminal Download](https://github.com/user-attachments/assets/4ab935c9-bdb7-4233-ab2a-12ee7263e2d3)
+
+Leveraging terminal emulation via:
+
+- `@xterm/xterm ^5.5.0` – Provides the core terminal interface
+- `@xterm/addon-fit ^0.10.0` – Auto-resizes terminal to fit container
+
+These libraries allow for an embedded terminal that displays real-time model downloads (e.g., `ollama pull gemma:3n`) during first launch.
+
+### Bundled Ollama Installer
+
+- The Ollama binary is pre-packaged within the app's `resources/` directory
+- If not already installed, it runs immediately after Mindwell installation during setup
+- Post-install, Ollama auto-updates and manages local models efficiently
+
+## 🧠 First-Time Setup Flow
+
+1. App launches with embedded terminal
+2. Checks for ollama binary and gemma:3n model
+3. If missing, silently installs Ollama
+4. Runs:
+   ```bash
+   ollama pull gemma:3n
+   ```
+5. User sees progress and status via in-app terminal
+
+
+## ✅ Benefits
+
+- **Offline-ready** and installer-integrated
+- **Terminal transparency** for initial first-time setups and download 
+- **Seamless first-time** AI model provisioning
+- **Supports auto-updating** of Ollama in background via Ollama itself
+  
+
 
 ---
 
@@ -107,13 +175,13 @@ graph TB
 | **Frontend** | ![React](https://img.shields.io/badge/React-20232A?style=flat-square&logo=react&logoColor=61DAFB) ![Vite](https://img.shields.io/badge/Vite-646CFF?style=flat-square&logo=vite&logoColor=white) ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat-square&logo=typescript&logoColor=white) | User Interface & Experience |
 | **UI/UX** | ![Chart.js](https://img.shields.io/badge/Chart.js-FF6384?style=flat-square&logo=chart.js&logoColor=white) ![Framer Motion](https://img.shields.io/badge/Framer%20Motion-0055FF?style=flat-square&logo=framer&logoColor=white) | Data Visualization & Animations |
 | **Backend** | ![Python](https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white) ![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=flat-square&logo=fastapi) | API & Business Logic |
-| **AI/ML** | ![Ollama](https://img.shields.io/badge/Ollama-FF6B35?style=flat-square) ![LangChain](https://img.shields.io/badge/LangChain-121212?style=flat-square) | Local AI Processing |
+| **AI/ML** | ![Ollama](https://img.shields.io/badge/Ollama-FF6B35?style=flat-square) ![LangChain](https://img.shields.io/badge/LangChain-121212?style=flat-square) ![Gemma 3n](https://img.shields.io/badge/Gemma3n-FFD700?style=flat-square&logo=google) | Local AI Processing |
 | **Desktop** | ![Electron](https://img.shields.io/badge/Electron-191970?style=flat-square&logo=Electron&logoColor=white) | Cross-platform Desktop App |
 | **Build Tools** | ![Electron Builder](https://img.shields.io/badge/Electron%20Builder-2B2E3A?style=flat-square) ![NSIS](https://img.shields.io/badge/NSIS-1E88E5?style=flat-square) | Application Packaging |
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Quick Start (For Development only)
 
 ### Prerequisites
 
@@ -143,7 +211,7 @@ graph TB
    - 🚀 Start the React development server
    - 🖥️ Launch the Electron application
    - 🐍 Initialize the Python backend
-   - 🤖 Connect to the local Ollama instance
+   - 🤖 Connect to the local Ollama instance (Ollama is necessary when running on dev environments)
 
 ### First Run Setup
 
@@ -174,9 +242,6 @@ Built applications will be available in `electron-app/dist/`
 
 - 📦 **Standalone Executables**: No Python installation required
 - 🔧 **Custom NSIS Installer**: Professional Windows installation experience
-- 🍎 **macOS Code Signing**: Ready for distribution (certificate required)
-- 🐧 **Linux AppImage**: Universal Linux compatibility
-
 ---
 
 ## 🛣️ Development Roadmap
@@ -194,20 +259,14 @@ Built applications will be available in `electron-app/dist/`
 - [x] Cross-platform build system
 - [x] Python-less packaging
 
-### 🚧 In Progress
-
-- [ ] Advanced AI conversation memory
-- [ ] Data export/import functionality
-- [ ] Customizable themes
-- [ ] Plugin system architecture
-
 ### 🔮 Future Plans
 
 - [ ] Cloud sync (optional, encrypted)
 - [ ] Mobile companion app
 - [ ] Advanced analytics dashboard
-- [ ] Integration with wearable devices
-- [ ] Voice interaction capabilities
+- [ ] Integration with Mobile devices
+- [ ] Voice interaction capabilities when Gemma3n updates on Ollama enabling multi-modal capabilities
+- [ ] RAG implementation and so much more
 
 ---
 
@@ -218,10 +277,11 @@ We welcome contributions from the community! Here's how you can help:
 1. **🍴 Fork the repository**
 2. **🌿 Create a feature branch** (`git checkout -b feature/amazing-feature`)
 3. **💻 Make your changes**
-4. **✅ Run tests** (`npm test`)
 5. **📝 Commit your changes** (`git commit -m 'Add amazing feature'`)
 6. **🚀 Push to the branch** (`git push origin feature/amazing-feature`)
 7. **🔀 Open a Pull Request**
+
+(I will verify the requests manually as i haven't integrated any tests yet)
 
 ### Development Guidelines
 
@@ -238,19 +298,38 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 ---
 
-## 🙏 Acknowledgments
+# 🙏 Acknowledgments
 
-- **Ollama Team** for the amazing local AI infrastructure
-- **Electron Community** for the powerful desktop framework
-- **React & FastAPI Teams** for the robust development tools
-- **Open Source Community** for inspiration and support
+This project wouldn't have been possible without the incredible contributions and innovations from various teams and communities:
 
+## Core Technologies
+- **Ollama Team** – For building an exceptional local AI infrastructure that makes running large language models accessible and efficient
+- **Electron Community** – For providing the powerful desktop framework that bridges web technologies with native applications
+- **React & FastAPI Teams** – For creating robust, developer-friendly tools that form the backbone of modern applications
+
+## Community & Inspiration
+- **Open Source Community** – For the endless inspiration, collaborative spirit, and unwavering support that has brought infinite joy throughout my entire Software Development Engineer career. The open-source ethos continues to fuel innovation and creativity in ways that never cease to amaze me.
+
+## The Star of the Show
+A special recognition goes to the **Google Gemma 3n Team** for creating something truly extraordinary. The innovation achieved in these models is nothing short of jaw-dropping:
+
+- **Blazing Performance** – The response times and memory efficiency make the application feel incredibly fast and responsive
+- **Exceptional Quality** – The model's output quality and reasoning capabilities are remarkable for a local deployment
+- **Multi-Modal Vision** – The multi-modal capabilities make this model genuinely one-of-a-kind in the local AI space
+
+*Note: While Ollama hasn't yet updated to support the full multi-modal capabilities of Gemma 3, working with what's currently available has been an absolute pleasure.*
+
+## Final Thoughts
+
+This hackathon has been an incredibly rewarding experience. Building with cutting-edge AI technology, exploring the boundaries of what's possible with local models, and creating something meaningful in such a short timeframe has been both challenging and exhilarating.
+
+**Thank you for this amazing opportunity** – it's experiences like these that remind me why I fell in love with software development in the first place.
 ---
 
 <div align="center">
 
 **Made with ❤️ for mental wellness and productivity**
 
-[⭐ Star this project](https://github.com/MirangBhandari/MindWell) if you find it helpful!
+[⭐ Star this project](https://github.com/MirangBhandari/MindWell) if you find it helpful or interesting!!
 
 </div>
