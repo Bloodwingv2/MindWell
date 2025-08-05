@@ -307,7 +307,7 @@ Built applications will be available in `electron-app/dist/`
 
 ## 🤝 Contributing
 
-We welcome contributions from the community! Here's how you can help:
+contributions from the community are wlecomed! if you have any blazing new idea make sure to let me know and do the following below to submit a pull-request:
 
 1. **🍴 Fork the repository**
 2. **🌿 Create a feature branch** (`git checkout -b feature/amazing-feature`)
