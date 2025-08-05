@@ -268,10 +268,10 @@ graph TB
 | Platform | Command | Output |
 |----------|---------|--------|
 | **Windows** | `npm run dist:win` | `.exe` installer |
-| **macOS** | `npm run dist:mac` | `.dmg` installer |
-| **Linux** | `npm run dist:linux` | `.AppImage` / `.deb` |
 
 Built applications will be available in `electron-app/dist/`
+
+`Currently Scripts and Setups have been modified and created with Windows in mind only`
 
 ### Build Features
 
