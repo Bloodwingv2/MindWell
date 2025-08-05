@@ -13,12 +13,7 @@
 [![Python](https://img.shields.io/badge/Python-3776AB?style=flat&logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=flat&logo=fastapi)](https://fastapi.tiangolo.com/)
 [![Ollama](https://img.shields.io/badge/Ollama-000000?style=flat&logo=ollama&logoColor=white)](https://ollama.com/)
-
-[![Windows](https://img.shields.io/badge/Windows-0078D6?style=flat&logo=windows&logoColor=white)](https://github.com/MirangBhandari/MindWell/releases)
-
-
-[📥 Download](https://github.com/MirangBhandari/MindWell/releases) • [📖 Documentation](#) • [🐛 Report Bug](https://github.com/MirangBhandari/MindWell/issues) • [💡 Request Feature](https://github.com/MirangBhandari/MindWell/issues)
-
+[![Windows](https://img.shields.io/badge/Windows-0078D6?style=flat&logo=windows&logoColor=white)](...)
 </div>
 
 ---
