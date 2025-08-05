@@ -597,15 +597,6 @@ async def clear_mood_log():
 async def get_special_memory():
     return JSONResponse(content=load_memories_special())
 
-@app.put("/memory")
-async def update_memory_endpoint(request: MemoryUpdateRequest):
-    try:
-        update_special_memory(request.id, request.memory, request.table)
-        return JSONResponse(content={"message": "Memory updated successfully"}, status_code=200)
-    except Exception as e:
-        logging.error(f"Error updating memory: {e}")
-        return JSONResponse(content={"error": str(e)}, status_code=500)
-
 @app.put("/special_memory")
 async def update_special_memory_endpoint(request: SpecialMemoryUpdateRequest):
     try:
