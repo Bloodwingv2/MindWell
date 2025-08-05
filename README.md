@@ -95,7 +95,7 @@ Interact with a powerful local AI assistant from Google (Gemma3n model via Ollam
 
 ---
 
-### **Memory Lane**
+### 🧠 **Memory Lane**
 - Any special memories tagged by Gemma3n are stored in Memory lane
 - Allows users to Journal, modify the memory on command
 - Revisit old memories with timestamps
