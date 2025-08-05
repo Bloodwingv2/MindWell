@@ -4,7 +4,7 @@
 
 <img src="electron-app/src/assets/MindWell.png" alt="MindWell Logo" width="150"/>
 
-**Your personal AI-powered assistant for mental wellness and productivity**
+**Your personal AI-powered assistant for all your theraputic needs**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Electron](https://img.shields.io/badge/Electron-191970?style=flat&logo=Electron&logoColor=white)](https://www.electronjs.org/)
@@ -25,7 +25,15 @@
 
 ## 🌟 Overview
 
-MindWell is a powerfu lcompletely offline desktop application utilizing Gemma3n as the brains behind the operation, designed to be your personal AI-powered Therapy assistant, with a special focus on mental wellness tracking, journaling and summarization. Built with privacy in mind, it runs completely offline with its own SQLLite database, ensuring your data remains secure on your machine and only you have access to it. Experience the power of Gemma3n and AI without compromising your privacy.
+Ever wondered if your data is safe or not? Ever wondered how much of your data you are actually unknowingly giving to chat applications on the internet? No????
+
+Well, I have just the answer for all your therapeutic needs! Instead of asking ChatGPT or other AI tools for therapy, why not ask MindWell? Your very own offline AI desktop app where you are in control of your data and you can analyze and journal your special memories, and view your progress over time.
+
+All of this is possible thanks to a lightweight model from Google called **"Gemma3n"**.
+
+Gemma3n is truly one of a kind! You know how models create better responses based on the parameters they have? Well, Gemma3n is unique - it has a footprint of 5B parameters but operates with the memory capacity of only 2B (in the case of e2b), allowing us to create a desktop application with 2 instances of the model when required for internal calls of summarization + chat + tracking + journaling all at once!!! How awesome is that??
+
+Below you can check out the architecture diagram and tech stacks used in this project
 
 > 🔒 **Privacy First**: All your data stays on your device. No cloud storage, no data sharing.
 
@@ -66,39 +74,31 @@ Interact with a powerful local AI assistant from Google (Gemma3n model via Ollam
 
 ## 🏗️ Architecture & Tech Stack
 
-<div align="center">
-
 ```mermaid
-graph TD
-    subgraph "Electron App"
-        direction LR
-        A[Electron Main Process]
-        B[React Frontend]
-    end
+graph TB
+    A[Electron App] --> B[React.tsx Frontend]
+    A --> C[Python Backend .venv]
+    B --> D[FastAPI Server]
+    D --> B
+    C --> E[Ollama Manager]
+    E --> H[Gemma 3n]
+    H --> J[Conversation Buffer]
+    J --> I[SQLite Storage]
+    C --> F[Local JSON Storage]
+    F --> I[SQLite Storage]
+    D --> G[LangChain --> Prompt-Template + Question]
 
-    subgraph "Backend"
-        direction LR
-        C[FastAPI Server]
-        D[Ollama (Gemma)]
-        E[SQLite Database]
-        F[LangChain]
-    end
-
-    A -- Manages & Spawns --> C
-    B -- HTTP Requests --> C
-    C -- Interacts with --> D
-    C -- Reads/Writes --> E
-    C -- Uses --> F
-
-    style A fill:#47848F,stroke:#333,stroke-width:2px
-    style B fill:#61DAFB,stroke:#333,stroke-width:2px
-    style C fill:#009688,stroke:#333,stroke-width:2px
-    style D fill:#F9A825,stroke:#333,stroke-width:2px
-    style E fill:#7E57C2,stroke:#333,stroke-width:2px
-    style F fill:#FF6B6B,stroke:#333,stroke-width:2px
+    style A fill:#2196F3,color:#fff
+    style B fill:#61DAFB,color:#000
+    style C fill:#3776AB,color:#fff
+    style D fill:#05a081,color:#fff
+    style E fill:#FF6B35,color:#fff
+    style H fill:#FFD700,color:#000
+    style J fill:#FFF176,color:#000
+    style F fill:#8D6E63,color:#fff
+    style I fill:#4DB6AC,color:#000
+    style G fill:#6A1B9A,color:#fff
 ```
-
-</div>
 
 ### 🛠️ Technologies Used
 
