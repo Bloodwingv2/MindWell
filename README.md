@@ -158,7 +158,6 @@ These libraries allow for an embedded terminal that displays real-time model dow
    ```
 5. User sees progress and status via in-app terminal
 
-
 ## ✅ Benefits
 
 - **Offline-ready** and installer-integrated
@@ -172,31 +171,9 @@ These libraries allow for an embedded terminal that displays real-time model dow
 
 ## Architecture & Tech Stack
 
-```mermaid
-graph TB
-    A[Electron App] --> B[React.tsx Frontend]
-    A --> C[Python Backend .venv]
-    B --> D[FastAPI Server]
-    D --> B
-    C --> E[Ollama Manager]
-    E --> H[Gemma 3n]
-    H --> J[Conversation Buffer]
-    J --> I[SQLite Storage]
-    C --> F[Local JSON Storage]
-    F --> I[SQLite Storage]
-    D --> G[LangChain --> Prompt-Template + Question]
+<img width="3840" height="3354" alt="Updated loop" src="https://github.com/user-attachments/assets/eb10acdd-1052-4df9-9fba-570dabe9e8d3" />
 
-    style A fill:#2196F3,color:#fff
-    style B fill:#61DAFB,color:#000
-    style C fill:#3776AB,color:#fff
-    style D fill:#05a081,color:#fff
-    style E fill:#FF6B35,color:#fff
-    style H fill:#FFD700,color:#000
-    style J fill:#FFF176,color:#000
-    style F fill:#8D6E63,color:#fff
-    style I fill:#4DB6AC,color:#000
-    style G fill:#6A1B9A,color:#fff
-```
+
 
 ### 🛠️ Technologies Used
 
