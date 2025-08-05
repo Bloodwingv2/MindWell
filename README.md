@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![MindWell Logo](https://i.imgur.com/your-screenshot.png) <!-- Replace with actual logo -->
+![MindWell Logo](electron-app/src/assets/MindWell.png)
 
 **Your personal AI-powered assistant for mental wellness and productivity**
 
@@ -13,11 +13,11 @@
 [![Python](https://img.shields.io/badge/Python-3776AB?style=flat&logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=flat&logo=fastapi)](https://fastapi.tiangolo.com/)
 
-[![Windows](https://img.shields.io/badge/Windows-0078D6?style=flat&logo=windows&logoColor=white)](https://github.com/your-username/Gemmatalk/releases)
-[![macOS](https://img.shields.io/badge/macOS-000000?style=flat&logo=apple&logoColor=white)](https://github.com/your-username/Gemmatalk/releases)
-[![Linux](https://img.shields.io/badge/Linux-FCC624?style=flat&logo=linux&logoColor=black)](https://github.com/your-username/Gemmatalk/releases)
+[![Windows](https://img.shields.io/badge/Windows-0078D6?style=flat&logo=windows&logoColor=white)](https://github.com/MirangBhandari/Gemmatalk/releases)
+[![macOS](https://img.shields.io/badge/macOS-000000?style=flat&logo=apple&logoColor=white)](https://github.com/MirangBhandari/Gemmatalk/releases)
+[![Linux](https://img.shields.io/badge/Linux-FCC624?style=flat&logo=linux&logoColor=black)](https://github.com/MirangBhandari/Gemmatalk/releases)
 
-[📥 Download](https://github.com/your-username/Gemmatalk/releases) • [📖 Documentation](#) • [🐛 Report Bug](https://github.com/your-username/Gemmatalk/issues) • [💡 Request Feature](https://github.com/your-username/Gemmatalk/issues)
+[📥 Download](https://github.com/MirangBhandari/Gemmatalk/releases) • [📖 Documentation](#) • [🐛 Report Bug](https://github.com/MirangBhandari/Gemmatalk/issues) • [💡 Request Feature](https://github.com/MirangBhandari/Gemmatalk/issues)
 
 </div>
 
@@ -121,7 +121,7 @@ graph TB
 
 ### Prerequisites
 
-- **Node.js** (v16 or higher)
+- **Node.js** (v18 or higher)
 - **npm** or **yarn**
 - **Git**
 
@@ -129,7 +129,7 @@ graph TB
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/your-username/Gemmatalk.git
+   git clone https://github.com/MirangBhandari/Gemmatalk.git
    cd Gemmatalk/electron-app
    ```
 
@@ -255,6 +255,6 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 **Made with ❤️ for mental wellness and productivity**
 
-[⭐ Star this project](https://github.com/your-username/Gemmatalk) if you find it helpful!
+[⭐ Star this project](https://github.com/MirangBhandari/Gemmatalk) if you find it helpful!
 
 </div>
