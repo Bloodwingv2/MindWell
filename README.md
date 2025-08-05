@@ -119,7 +119,7 @@ Interact with a powerful local AI assistant from Google (Gemma3n model via Ollam
 ### 🔧 **Customization & Accessibility**
 - Personalized settings and themes
 - User name setting to utilize as context for the chat app
-- default langugae settings to get summarization and journaling in different languages
+- default language settings to get summarization and journaling in different languages
 - Adaptive UI design and interactive animations
   
 <img width="1900" height="1015" alt="Settings tsx" src="https://github.com/user-attachments/assets/d9bbec63-a6e9-4c2b-bdf3-3dcfdf6e2fce" />
