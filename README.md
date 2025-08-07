@@ -323,7 +323,7 @@ A special recognition goes to the **Google Gemma 3n Team** for creating somethin
 - **Exceptional Quality** – The model's output quality and reasoning capabilities are remarkable for a local deployment
 - **Multi-Modal Vision** – The multi-modal capabilities make this model genuinely one-of-a-kind in the local AI space
 
-*Note: While Ollama hasn't yet updated to support the full multi-modal capabilities of Gemma 3, working with what's currently available has been an absolute pleasure.*
+*Note: While Ollama hasn't yet updated to support the full multi-modal capabilities of Gemma 3n, working with what's currently available has been an absolute pleasure.*
 
 ## Final Thoughts
 
