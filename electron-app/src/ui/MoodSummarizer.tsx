@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import './MoodSummarizer.css';
+import portData from '../Binaries/server_config.json'; // Import port from JSON file
+
+const serverPort = portData.port;
 
 interface MoodSummarizerProps {
   isProcessing: boolean;
@@ -15,7 +18,7 @@ const MoodSummarizer: React.FC<MoodSummarizerProps> = ({ isProcessing, setIsProc
   const fetchSummary = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:8000/mood_summary');
+      const response = await fetch(`http://localhost:${serverPort}/mood_summary`);
       const data = await response.json();
 
       if (data && data.length > 0) {
@@ -38,7 +41,7 @@ const MoodSummarizer: React.FC<MoodSummarizerProps> = ({ isProcessing, setIsProc
   const processConversations = async () => {
     setIsProcessing(true);
     try {
-      await fetch('http://localhost:8000/process_conversations', { method: 'POST' });
+      await fetch(`http://localhost:${serverPort}/process_conversations`, { method: 'POST' });
       fetchSummary();
     } catch (error) {
       console.error('Error processing conversations:', error);

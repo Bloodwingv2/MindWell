@@ -1,6 +1,10 @@
 import './WellnessTracker.css';
 import { useEffect, useState } from 'react';
 import { Line } from 'react-chartjs-2';
+import portData from '../Binaries/server_config.json'; // Import port from JSON file
+
+const serverPort = portData.port;
+
 import {
   Chart as ChartJS,
   LineElement,
@@ -58,7 +62,7 @@ const WellnessTracker: React.FC = () => {
   const fetchMoodData = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch("http://localhost:8000/mood");
+      const res = await fetch(`http://localhost:${serverPort}/mood`);
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
@@ -77,7 +81,7 @@ const WellnessTracker: React.FC = () => {
       setError(null);
       try {
           // First, process any buffered conversations to update the mood log
-          await fetch("http://localhost:8000/process_conversations", { method: 'POST' });
+          await fetch(`http://localhost:${serverPort}/process_conversations`, { method: 'POST' });
           // Then, fetch the updated mood data
           await fetchMoodData();
       } catch (e) {
@@ -92,7 +96,7 @@ const WellnessTracker: React.FC = () => {
     setIsResetting(true);
     setError(null);
     try {
-      const res = await fetch("http://localhost:8000/mood", { method: 'DELETE' });
+      const res = await fetch(`http://localhost:${serverPort}/mood`, { method: 'DELETE' });
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
       }

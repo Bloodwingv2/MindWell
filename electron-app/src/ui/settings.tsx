@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import './settings.css';
+import portData from '../Binaries/server_config.json'; // Import port from JSON file
+
+
+const serverPort = portData.port;
 
 interface SettingsProps {
   userName: string;
@@ -40,7 +44,7 @@ const Settings: React.FC<SettingsProps> = ({ userName, setUserName, showNotifica
   useEffect(() => {
     const savedLanguage = localStorage.getItem('defaultLanguage') || 'en';
     // Send saved language to backend on component mount
-    fetch('http://localhost:8000/update_settings', {
+    fetch(`http://localhost:${serverPort}/update_settings`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -64,7 +68,7 @@ const Settings: React.FC<SettingsProps> = ({ userName, setUserName, showNotifica
 
   const handleExportData = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/export_data');
+      const response = await fetch(`http://127.0.0.1:${serverPort}/export_data`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -108,7 +112,7 @@ const Settings: React.FC<SettingsProps> = ({ userName, setUserName, showNotifica
     localStorage.setItem('defaultLanguage', newLang);
     
     try {
-      const response = await fetch('http://localhost:8000/update_settings', {
+      const response = await fetch(`http://localhost:${serverPort}/update_settings`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

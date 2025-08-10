@@ -1,6 +1,7 @@
 // Notification.tsx
 import React, { useEffect, useState } from 'react';
 
+
 interface NotificationProps {
   message: string;
   type: 'success' | 'error';

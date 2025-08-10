@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import './MemoryLane.css';
+import portData from '../Binaries/server_config.json'; // Import port from JSON file
+
+const serverPort = portData.port;
 
 interface Memory {
   id: number;
@@ -43,7 +46,7 @@ const MemoryLane: React.FC = () => {
 
   const fetchMemories = async () => {
     try {
-      const response = await fetch('http://localhost:8000/special_memory');
+      const response = await fetch(`http://localhost:${serverPort}/special_memory`);
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       const data = await response.json();
       
@@ -71,7 +74,7 @@ const MemoryLane: React.FC = () => {
     if (!selectedMemory) return;
 
     try {
-      const response = await fetch('http://localhost:8000/special_memory',
+      const response = await fetch(`http://localhost:${serverPort}/special_memory`,
         {
           method: 'PUT',
           headers: {
@@ -100,7 +103,7 @@ const MemoryLane: React.FC = () => {
     if (!selectedMemory) return;
 
     try {
-      const response = await fetch('http://localhost:8000/memory',
+      const response = await fetch(`http://localhost:${serverPort}/memory`,
         {
           method: 'DELETE',
           headers: {

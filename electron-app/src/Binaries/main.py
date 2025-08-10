@@ -16,11 +16,11 @@ from fastapi.middleware.cors import CORSMiddleware
 import logging
 
 # Import subprocess for model download
-import subprocess
 import os
 import re
 from memory import init_db
 import sqlite3
+import socket
 
 # Mood imports to log for graphs
 import json
@@ -741,4 +741,22 @@ async def update_settings(request: Request):
 if __name__ == "__main__":
     import uvicorn
     logging.basicConfig(level=logging.INFO)
-    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=False)
+
+    # Try ports from 8000 to 8100 until we find one free
+    for port in range(8000, 8101):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            try:
+                s.bind(("127.0.0.1", port))
+                break
+            except OSError:
+                continue
+    else:
+        raise RuntimeError("No free ports available in range")
+
+    # Save chosen port to JSON file
+    config_path = os.path.join(os.path.dirname(__file__), "server_config.json")
+    with open(config_path, "w") as f:
+        json.dump({"port": port}, f)
+
+    logging.info(f"Starting server on port {port}")
+    uvicorn.run("main:app", host="127.0.0.1", port=port, reload=False)

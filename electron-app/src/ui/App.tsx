@@ -8,6 +8,7 @@ import Settings from './settings'; // Import Settings
 import Notification from './Notification';
 import './Notification.css';
 import WelcomeScreen from './WelcomeScreen';
+import portData from '../Binaries/server_config.json'; // Import port from JSON file
 
 import ISAClogo from '../assets/MindWell.png'
 import sentbtn from '../assets/send-svgrepo-com.svg'
@@ -24,6 +25,7 @@ import { Terminal } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import '@xterm/xterm/css/xterm.css';
 
+const serverPort = portData.port;
 
 type Message = {
   id: string; 
@@ -189,7 +191,7 @@ const App = () => {
   useEffect(() => {
     const processMemories = async () => {
       try {
-        await fetch('http://localhost:8000/process_conversations', { method: 'POST' });
+        await fetch(`http://localhost:${serverPort}/process_conversations`, { method: 'POST' });
         console.log('Conversations processed successfully on startup.');
       } catch (error) {
         console.error('Error processing conversations on startup:', error);
@@ -255,7 +257,7 @@ const App = () => {
     let downloadCompleted = false;
     
     try {
-      const response = await fetch('http://localhost:8000/stream', {
+      const response = await fetch(`http://localhost:${serverPort}/stream`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
