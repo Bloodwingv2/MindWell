@@ -1,4 +1,6 @@
 @echo off
-cd %~dp0
-gemma\Scripts\python.exe main.py
+cd /d "%~dp0"
+
+"%~dp0embedded\python.exe" "%~dp0main.py"
+
 pause

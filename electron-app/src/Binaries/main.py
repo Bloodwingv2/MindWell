@@ -18,6 +18,15 @@ import logging
 # Import subprocess for model download
 import os
 import re
+import sys
+import os
+# Get the folder containing main.py (where memory.py lives)
+current_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Insert it at the start of sys.path so Python prioritizes it
+sys.path.insert(0, current_dir)
+
+# Now you can safely import memory
 from memory import init_db
 import sqlite3
 import socket

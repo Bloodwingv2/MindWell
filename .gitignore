@@ -23,6 +23,7 @@ Voice_samples
 talkenv
 gemma
 memory.db
+embedded
 *.local
 
 # Editor directories and files
