@@ -164,7 +164,12 @@ These libraries allow for an embedded terminal that displays real-time model dow
 - **Seamless first-time** AI model provisioning
 - **Supports auto-updating** of Ollama in background via Ollama itself
   
+⚠️ **Warning**:  
+If the integrated terminal fails to open due to new Ollama updates, manually pull the required model using **CMD**:
 
+```cmd
+ollama pull gemma3n:e2b
+```
 
 ---
 
